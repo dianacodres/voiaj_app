@@ -27,11 +27,13 @@ public class MainActivity extends AppCompatActivity {
         Button btnHaveAccount = findViewById(R.id.btnHaveAccount);
 
         btnStartExploring.setOnClickListener(v -> {
-            // TODO: navigare către onboarding
+            Intent intent = new Intent(MainActivity.this, InterestsActivity.class);
+            startActivity(intent);
         });
 
         btnHaveAccount.setOnClickListener(v -> {
             startActivity(new Intent(MainActivity.this, LoginActivity.class));
         });
+
     }
 }
