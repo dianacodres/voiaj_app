@@ -27,9 +27,15 @@ public class MainActivity extends AppCompatActivity {
 
 
         Button btnStartExploring = findViewById(R.id.btnStartExploring);
+        Button btnHaveAccount = findViewById(R.id.btnHaveAccount);
+
         btnStartExploring.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, InterestsActivity.class);
+            Intent intent = new Intent(MainActivity.this, SignUpActivity.class);
             startActivity(intent);
+        });
+
+        btnHaveAccount.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
         });
     }
 }

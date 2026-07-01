@@ -61,7 +61,10 @@ public class InterestsActivity extends AppCompatActivity {
         tvStepCount = findViewById(R.id.tvStepCount);
         btnContinue = findViewById(R.id.btnContinue);
 
-        findViewById(R.id.btnBack).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
+        findViewById(R.id.btnBack).setOnClickListener(v -> {
+            Intent intent = new Intent(InterestsActivity.this, SignUpActivity.class);
+            startActivity(intent);
+        });
 
         CardConfig[] configs = {
                 new CardConfig(R.id.cardBeaches, "beaches", "Beaches", "prelogin_img_1"),
@@ -89,6 +92,7 @@ public class InterestsActivity extends AppCompatActivity {
 
             animateProgressToStepTwo();
         });
+
     }
 
     private void setupCard(int includeRootId, String key, String label, String drawableName) {
@@ -148,7 +152,7 @@ public class InterestsActivity extends AppCompatActivity {
         float targetRotation = nowSelected ? 45f : 0f;
         card.badgeIcon.animate()
                 .rotation(targetRotation)
-                .setDuration(250) // Durata animației în milisecunde
+                .setDuration(100) // Durata animației în milisecunde
                 .start();
 
         if (nowSelected) {
@@ -164,7 +168,6 @@ public class InterestsActivity extends AppCompatActivity {
         btnContinue.setEnabled(selectedKeys.size() >= MIN_REQUIRED);
     }
 
-    // Sugestia 3: Implementarea metodei de salvare locală
     private void saveInterestsToPreferences() {
         SharedPreferences sharedPref = getSharedPreferences("VoiajAppPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
