@@ -10,7 +10,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -18,18 +17,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-
         Button btnStartExploring = findViewById(R.id.btnStartExploring);
+        Button btnHaveAccount = findViewById(R.id.btnHaveAccount);
+
         btnStartExploring.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, InterestsActivity.class);
-            startActivity(intent);
+            // TODO: navigare către onboarding
+        });
+
+        btnHaveAccount.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
         });
     }
 }
