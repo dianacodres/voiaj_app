@@ -5,5 +5,11 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
+
     <style name="Theme.Mobile_app" parent="Base.Theme.Mobile_app" />
+
+    <style name="RoundedCorners">
+        <item name="cornerSize">16dp</item>
+        <item name="cornerFamily">rounded</item>
+    </style>
 </resources>

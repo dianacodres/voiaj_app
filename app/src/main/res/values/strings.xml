@@ -1,3 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">mobile_app</string>
+    <string name="app_name">Voyaj</string>
+    <string name="step_label">STEP 2 · INTERESTS</string>
+    <string name="step_one_of_two">1/2</string>
+    <string name="step_two_of_two">2/2</string>
+    <string name="title">What inspires your trips?</string>
+    <string name="subtitle">Pick at least 2 - this will tailor the app to your preferences.</string>
+    <string name="continue_btn">Continue</string>
+    <string name="img_missing_error">Imaginea pentru \'%1$s\' lipsește din proiect (drawable/%2$s)</string>
+    <string name="min_select_error">Selectează cel puțin 3 interese pentru a continua</string>
+    <string name="congrats">Felicitări!</string>
+    <string name="selection_ready">Selecția ta este gata.</string>
+    <string name="summary_text">%1$s\nAi ales %2$d interese.</string>
 </resources>

@@ -21,6 +21,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".InterestsActivity" android:exported="false" />
+        <activity android:name=".SummaryActivity" android:exported="false" />
     </application>
 
 </manifest>
