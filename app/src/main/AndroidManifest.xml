@@ -25,6 +25,10 @@
             android:name=".LoginActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".DiscoverActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>
