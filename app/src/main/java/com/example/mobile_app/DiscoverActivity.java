@@ -24,6 +24,10 @@ public class DiscoverActivity extends AppCompatActivity {
                     return insets;
                 });
 
+        findViewById(R.id.btnPlanArrow).setOnClickListener(v -> {
+            startActivity(new Intent(DiscoverActivity.this, PlanTripActivity.class));
+        });
+
         TextView txtAvatar = findViewById(R.id.txtAvatar);
         //navigare setari cont apasand pe iconita
         txtAvatar.setOnClickListener(v -> {
