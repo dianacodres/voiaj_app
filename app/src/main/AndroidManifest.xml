@@ -21,10 +21,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".LoginActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustPan" />
+
         <activity android:name=".InterestsActivity" android:exported="false" />
         <activity android:name=".SummaryActivity" android:exported="false" />
         <activity android:name=".SignUpActivity" android:exported="false" />
