@@ -18,6 +18,7 @@
     <color name="card">#FFFFFF</color>
 
     <color name="orange_cta">#E8A33D</color>
+    <color name="beige">#EAD098</color>
     <color name="text_muted">#8A8F98</color>
     <color name="progress_track">#E3E1DB</color>
     <color name="error_red">#E05252</color>
