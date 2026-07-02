@@ -1,6 +1,5 @@
 package com.example.mobile_app;
 
-import android.content.Intent;
 import android.os.Bundle;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,9 +20,5 @@ public class DiscoverActivity extends AppCompatActivity {
                     v.setPadding(0, 0, 0, systemBars.bottom);
                     return insets;
                 });
-
-        findViewById(R.id.btnPlanArrow).setOnClickListener(v -> {
-            startActivity(new Intent(DiscoverActivity.this, PlanTripActivity.class));
-        });
     }
 }

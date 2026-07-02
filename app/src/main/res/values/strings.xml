@@ -6,7 +6,7 @@
     <string name="step_two_of_two">2/2</string>
     <string name="title">What inspires your trips?</string>
     <string name="subtitle">Pick at least 2 - this will tailor the app to your preferences.</string>
-    <string name="continue_btn">Continue</string>
+    <string name="continue_btn">Start Exploring</string>
     <string name="img_missing_error">Imaginea pentru \'%1$s\' lipsește din proiect (drawable/%2$s)</string>
     <string name="min_select_error">Selectează cel puțin 3 interese pentru a continua</string>
     <string name="congrats">Felicitări!</string>

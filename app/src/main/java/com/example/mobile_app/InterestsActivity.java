@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -15,6 +14,8 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -26,12 +27,11 @@ import java.util.Set;
  */
 public class InterestsActivity extends AppCompatActivity {
 
-
     private static final int MIN_REQUIRED = 2;
 
     private ProgressBar progressBar;
     private TextView tvStepCount;
-    private Button btnContinue;
+    private MaterialButton btnContinue;
 
     private final List<InterestCard> cards = new ArrayList<>();
     private final Set<String> selectedKeys = new HashSet<>();
@@ -66,6 +66,7 @@ public class InterestsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+
         CardConfig[] configs = {
                 new CardConfig(R.id.cardBeaches, "beaches", "Beaches", "prelogin_img_1"),
                 new CardConfig(R.id.cardFood, "food", "Food", "prelogin_img_2"),
@@ -87,12 +88,9 @@ public class InterestsActivity extends AppCompatActivity {
                 return;
             }
 
-
             saveInterestsToPreferences();
-
             animateProgressToStepTwo();
         });
-
     }
 
     private void setupCard(int includeRootId, String key, String label, String drawableName) {
@@ -106,7 +104,6 @@ public class InterestsActivity extends AppCompatActivity {
         tvLabel.setText(label);
         loadImageSafely(ivImage, drawableName, label);
 
-        // Setăm iconița inițială ca fiind obligatoriu plusul (neselectat)
         badgeIcon.setImageResource(R.drawable.interests_ic_plus);
 
         InterestCard card = new InterestCard(key, root, badgeBg, badgeIcon);
@@ -147,12 +144,10 @@ public class InterestsActivity extends AppCompatActivity {
         card.root.setSelected(nowSelected);
         card.badgeBg.setSelected(nowSelected);
 
-        // Sugestia 2: Animație de rotație fluidă.
-        // Dacă e neselectat, un plus (+). Dacă se rotește la 45 de grade, devine un (x).
         float targetRotation = nowSelected ? 45f : 0f;
         card.badgeIcon.animate()
                 .rotation(targetRotation)
-                .setDuration(100) // Durata animației în milisecunde
+                .setDuration(100)
                 .start();
 
         if (nowSelected) {
@@ -165,14 +160,20 @@ public class InterestsActivity extends AppCompatActivity {
     }
 
     private void updateContinueState() {
-        btnContinue.setEnabled(selectedKeys.size() >= MIN_REQUIRED);
+        boolean isReady = selectedKeys.size() >= MIN_REQUIRED;
+        btnContinue.setEnabled(isReady);
+
+        if (isReady) {
+            btnContinue.setAlpha(1.0f);
+        } else {
+            btnContinue.setAlpha(0.5f);
+        }
     }
 
     private void saveInterestsToPreferences() {
         SharedPreferences sharedPref = getSharedPreferences("VoiajAppPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
 
-        // Salvăm setul de string-uri în cache-ul telefonului
         editor.putStringSet("user_interests", selectedKeys);
         editor.apply();
     }
@@ -185,9 +186,11 @@ public class InterestsActivity extends AppCompatActivity {
         tvStepCount.setText(R.string.step_two_of_two);
 
         progressBar.postDelayed(() -> {
-            Intent intent = new Intent(this, SummaryActivity.class);
+            // MODIFICAT: Schimbat destinația din SummaryActivity în DiscoverActivity
+            Intent intent = new Intent(this, DiscoverActivity.class);
             intent.putExtra("selected_count", selectedKeys.size());
             startActivity(intent);
+            finish();
         }, 400);
     }
 
