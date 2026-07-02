@@ -14,4 +14,22 @@
         <item name="cornerSize">16dp</item>
         <item name="cornerFamily">rounded</item>
     </style>
+
+    <style name="SignUp.InputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/signup_input_stroke</item>
+        <item name="boxStrokeWidth">1.5dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
+        <item name="boxBackgroundColor">@color/card</item>
+        <item name="hintTextColor">@color/signup_hint_color</item>
+        <item name="android:textColorHint">@color/text_muted</item>
+        <item name="errorTextColor">@color/error_red</item>
+        <item name="errorIconDrawable">@null</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
 </resources>
