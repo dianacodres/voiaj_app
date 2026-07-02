@@ -1,6 +1,9 @@
 package com.example.mobile_app;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.TextView;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -20,5 +23,12 @@ public class DiscoverActivity extends AppCompatActivity {
                     v.setPadding(0, 0, 0, systemBars.bottom);
                     return insets;
                 });
+
+        TextView txtAvatar = findViewById(R.id.txtAvatar);
+        //navigare setari cont apasand pe iconita
+        txtAvatar.setOnClickListener(v -> {
+            Intent intent = new Intent(DiscoverActivity.this, AccountSettingsActivity.class);
+            startActivity(intent);
+        });
     }
 }

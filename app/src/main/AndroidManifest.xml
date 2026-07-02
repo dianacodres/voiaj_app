@@ -22,19 +22,27 @@
             </intent-filter>
         </activity>
 
-        <!-- Login Activity -->
         <activity
             android:name=".LoginActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustPan" />
 
-        <!-- Discover Activity -->
         <activity
             android:name=".DiscoverActivity"
             android:exported="false" />
+
         <activity android:name=".InterestsActivity" android:exported="false" />
         <activity android:name=".SummaryActivity" android:exported="false" />
-        <activity android:name=".SignUpActivity" android:exported="false" />
+
+        <activity
+            android:name=".SignUpActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false">
+        </activity>
+        
+        <activity
+            android:name=".AccountSettingsActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
