@@ -1,10 +1,12 @@
 package com.example.mobile_app;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
-import android.graphics.Insets;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -57,16 +59,43 @@ public class AccountSettingsActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // ── ACTIVARE TRASPARENȚĂ STATUS BAR (EDGE-TO-EDGE) ──
+        // 1. ACTIVARE EDGE-TO-EDGE
         EdgeToEdge.enable(this);
 
         setContentView(R.layout.activity_profile_settings);
 
+        // 2. FIX CULOARE PENTRU HEADER BACKGROUND
+        View headerBackground = findViewById(R.id.headerBackground);
+        if (headerBackground != null) {
+            int skyBlueColor = ContextCompat.getColor(this, R.color.sky_blue_2);
+            headerBackground.setBackgroundColor(skyBlueColor);
+        }
+
+        // 3. FIX CULOARE FUNDAL BARE SISTEM
+        int designBackgroundColor = Color.parseColor("#BDD8E9");
+        getWindow().setBackgroundDrawable(new ColorDrawable(designBackgroundColor));
+
+        // 4. APLICARE CORECTĂ A INSETS-URILOR (ADĂUGAT INSETS.TOP PENTRU MATRICEA DE SUS)
+        View mainRoot = findViewById(R.id.mainRoot);
+        if (mainRoot == null) {
+            mainRoot = ((android.view.ViewGroup) findViewById(android.view.ViewGroup.NO_ID)).getChildAt(0);
+        }
+
+        if (mainRoot != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(mainRoot, (v, windowInsets) -> {
+                androidx.core.graphics.Insets insets = windowInsets.getInsets(
+                        WindowInsetsCompat.Type.statusBars() | WindowInsetsCompat.Type.navigationBars()
+                );
+                // FIX CRITIC: insets.top se aplică acum ca padding superior, coborând butonul Back sub notch/ceas
+                v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+                return WindowInsetsCompat.CONSUMED;
+            });
+        }
+
         txtUserName = findViewById(R.id.txtUserName);
         txtUserEmail = findViewById(R.id.txtUserEmail);
 
-
-        // ── 1. POP-UP PROFIL (Creion) ──
+        // 1. POP-UP PROFIL
         findViewById(R.id.btnEditProfile).setOnClickListener(v -> {
             BottomSheetDialog profileDialog = new BottomSheetDialog(this);
             View view = getLayoutInflater().inflate(R.layout.layout_bottom_sheet_edit_profile, null);
@@ -89,7 +118,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
             profileDialog.show();
         });
 
-        // ── 2. POP-UP PAROLĂ (Rând de listă) ──
+        // 2. POP-UP PAROLĂ
         findViewById(R.id.btnMenuChangePassword).setOnClickListener(v -> {
             BottomSheetDialog passwordDialog = new BottomSheetDialog(this);
             View passView = getLayoutInflater().inflate(R.layout.layout_bottom_sheet_password, null);
@@ -102,7 +131,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
             passwordDialog.show();
         });
 
-        // ── 3. NOTIFICAȚII CU SCHIMBARE DE CULOARE DINAMICĂ ──
+        // 3. NOTIFICAȚII CU SCHIMBARE DE CULOARE DINAMICĂ
         SwitchMaterial switchNotifications = findViewById(R.id.switchNotifications);
 
         int colorActiveThumb = ContextCompat.getColor(this, R.color.sky_blue_2);
@@ -125,7 +154,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
             switchNotifications.setTrackTintList(ColorStateList.valueOf(colorMutedThumb));
         }
 
-        // ── 4. POP-UP INTERESE (Forțat deschis la maximum) ──
+        // 4. POP-UP INTERESE
         findViewById(R.id.btnMenuChangeInterests).setOnClickListener(v -> {
             BottomSheetDialog interestsDialog = new BottomSheetDialog(this);
             View intView = getLayoutInflater().inflate(R.layout.layout_bottom_sheet_interests, null);
@@ -142,10 +171,10 @@ public class AccountSettingsActivity extends AppCompatActivity {
             CardConfig[] configs = {
                     new CardConfig(R.id.cardBeaches, "beaches", "Beaches", "prelogin_img_1"),
                     new CardConfig(R.id.cardFood, "food", "Food", "prelogin_img_2"),
-                    new CardConfig(R.id.cardCities, "cities", "Cities", "prelogin_img_3"),
-                    new CardConfig(R.id.cardMountains, "mountains", "Mountains", "prelogin_img_4"),
+                    new CardConfig(R.id.cardCities, "historical", "Historical", "prelogin_img_3"),
+                    new CardConfig(R.id.cardNature, "nature", "Nature", "prelogin_img_6"),
                     new CardConfig(R.id.cardCulture, "culture", "Culture", "prelogin_img_5"),
-                    new CardConfig(R.id.cardNature, "nature", "Nature", "prelogin_img_6")
+                    new CardConfig(R.id.cardMountains, "urbanism", "Urbanism", "prelogin_img_4")
             };
 
             MaterialButton btnSaveInterests = intView.findViewById(R.id.btnSaveInterests);
@@ -169,7 +198,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
             interestsDialog.show();
         });
 
-        // ── 5. LOG OUT ──
+        // 5. LOG OUT
         findViewById(R.id.btnLogout).setOnClickListener(v -> {
             Intent intent = new Intent(AccountSettingsActivity.this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

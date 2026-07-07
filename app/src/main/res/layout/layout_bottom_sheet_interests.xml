@@ -44,7 +44,7 @@
         android:layout_marginTop="12dp"
         android:baselineAligned="false">
         <include android:id="@+id/cardCities" layout="@layout/view_interest_card" android:layout_width="0dp" android:layout_height="130dp" android:layout_weight="1" android:layout_marginEnd="8dp" />
-        <include android:id="@+id/cardMountains" layout="@layout/view_interest_card" android:layout_width="0dp" android:layout_height="130dp" android:layout_weight="1" android:layout_marginStart="8dp" />
+        <include android:id="@+id/cardNature" layout="@layout/view_interest_card" android:layout_width="0dp" android:layout_height="130dp" android:layout_weight="1" android:layout_marginStart="8dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -55,7 +55,7 @@
         android:layout_marginTop="12dp"
         android:baselineAligned="false">
         <include android:id="@+id/cardCulture" layout="@layout/view_interest_card" android:layout_width="0dp" android:layout_height="130dp" android:layout_weight="1" android:layout_marginEnd="8dp" />
-        <include android:id="@+id/cardNature" layout="@layout/view_interest_card" android:layout_width="0dp" android:layout_height="130dp" android:layout_weight="1" android:layout_marginStart="8dp" />
+        <include android:id="@+id/cardMountains" layout="@layout/view_interest_card" android:layout_width="0dp" android:layout_height="130dp" android:layout_weight="1" android:layout_marginStart="8dp" />
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton

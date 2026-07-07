@@ -66,14 +66,14 @@ public class InterestsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-
+        // MODIFICAT: S-a actualizat ordinea, denumirile și imaginile pentru a se potrivi cu ecranul de setări
         CardConfig[] configs = {
                 new CardConfig(R.id.cardBeaches, "beaches", "Beaches", "prelogin_img_1"),
                 new CardConfig(R.id.cardFood, "food", "Food", "prelogin_img_2"),
-                new CardConfig(R.id.cardCities, "cities", "Cities", "prelogin_img_3"),
-                new CardConfig(R.id.cardMountains, "mountains", "Mountains", "prelogin_img_4"),
+                new CardConfig(R.id.cardCities, "historical", "Historical", "prelogin_img_3"),
+                new CardConfig(R.id.cardNature, "nature", "Nature", "prelogin_img_6"),
                 new CardConfig(R.id.cardCulture, "culture", "Culture", "prelogin_img_5"),
-                new CardConfig(R.id.cardNature, "nature", "Nature", "prelogin_img_6")
+                new CardConfig(R.id.cardMountains, "urbanism", "Urbanism", "prelogin_img_4")
         };
 
         for (CardConfig config : configs) {
@@ -186,7 +186,6 @@ public class InterestsActivity extends AppCompatActivity {
         tvStepCount.setText(R.string.step_two_of_two);
 
         progressBar.postDelayed(() -> {
-            // MODIFICAT: Schimbat destinația din SummaryActivity în DiscoverActivity
             Intent intent = new Intent(this, DiscoverActivity.class);
             intent.putExtra("selected_count", selectedKeys.size());
             startActivity(intent);

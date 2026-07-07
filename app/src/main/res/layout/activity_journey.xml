@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/wishlistRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <TextView
+        android:id="@+id/txtWishlistTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:text="Your journeys"
+        android:textColor="@color/navy_blue_1"
+        android:textSize="28sp"
+        android:fontFamily="sans-serif-black"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/toggleGroupJourney"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginHorizontal="48dp"
+        android:layout_marginTop="16dp"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        app:checkedButton="@id/btnTabActive"
+        app:cornerRadius="30dp" app:layout_constraintTop_toBottomOf="@id/txtWishlistTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTabActive"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Active"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:padding="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            app:cornerRadius="20dp"
+            app:strokeColor="@color/light_turq_1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTabCompleted"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Completed"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:padding="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            app:cornerRadius="20dp"
+            app:strokeColor="@color/light_turq_1" />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/toggleGroupJourney"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingBottom="24dp">
+
+            <LinearLayout
+                android:id="@+id/containerActiveSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp">
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:background="@drawable/bg_avatar"
+                        android:backgroundTint="@color/light_turq_1" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Planned"
+                        android:textColor="@color/navy_blue_1"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/bg_chip"
+                        android:backgroundTint="#E8F8F5"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp"
+                        android:text="countdown active"
+                        android:textColor="@color/light_turq_1"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="12dp">
+
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/imgPlannedFrame"
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            app:cardCornerRadius="12dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent">
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/roma" />
+                        </androidx.cardview.widget.CardView>
+
+                        <TextView
+                            android:id="@+id/txtPlannedTitle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:text="Rome, Italy"
+                            android:textColor="@color/navy_blue_1"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            app:layout_constraintStart_toEndOf="@id/imgPlannedFrame"
+                            app:layout_constraintTop_toTopOf="@id/imgPlannedFrame"
+                            app:layout_constraintEnd_toStartOf="@id/layoutBadgeDays" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="May 14 - 18 · 4 days"
+                            android:textColor="@color/text_muted"
+                            android:textSize="13sp"
+                            app:layout_constraintStart_toStartOf="@id/txtPlannedTitle"
+                            app:layout_constraintTop_toBottomOf="@id/txtPlannedTitle"
+                            app:layout_constraintEnd_toStartOf="@id/layoutBadgeDays" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutBadgeDays"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_days_card"
+                            android:backgroundTint="@color/light_turq_1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="12"
+                                android:textColor="@color/white"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:includeFontPadding="false"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="DAYS"
+                                android:textColor="@color/white"
+                                android:textSize="9sp"
+                                android:textStyle="bold"
+                                android:includeFontPadding="false"/>
+                        </LinearLayout>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </androidx.cardview.widget.CardView>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="24dp">
+                    <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_edit" app:tint="@color/navy_blue_1" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Drafts" android:textColor="@color/navy_blue_1" android:textSize="14sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="just an idea" android:textColor="#999999" android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        app:cardBackgroundColor="@color/white"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp">
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                            <ImageView android:layout_width="match_parent" android:layout_height="100dp" android:scaleType="centerCrop" android:src="@drawable/interests_prelogin_img_3" />
+                            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="12dp">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Lisbon" android:textColor="@color/navy_blue_1" android:textSize="14sp" android:textStyle="bold" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="5-day idea" android:textColor="#888888" android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        app:cardBackgroundColor="@color/white"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp">
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                            <ImageView android:layout_width="match_parent" android:layout_height="100dp" android:scaleType="centerCrop" android:src="@drawable/interests_prelogin_img_1" />
+                            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="12dp">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Greece" android:textColor="@color/navy_blue_1" android:textSize="14sp" android:textStyle="bold" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="flexible dates" android:textColor="#888888" android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="24dp">
+                    <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_ai" app:tint="@color/navy_blue_1" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="AI plans" android:textColor="@color/navy_blue_1" android:textSize="14sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="start planning now" android:textColor="@color/text_muted" android:textSize="12sp" />
+                </LinearLayout>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+                    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="14dp" android:background="@color/light_turq_1">
+                        <ImageView
+                            android:id="@+id/imgAiBadge"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:background="@drawable/bg_input_field"
+                            android:backgroundTint="@color/sky_blue_2"
+                            android:padding="10dp"
+                            android:src="@drawable/ic_route"
+                            app:tint="@color/navy_blue_1"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent" />
+
+                        <TextView android:id="@+id/txtAiPlanTitle" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="14dp" android:text="Italy — 7-day plan" android:textColor="@color/navy_blue_1" android:textSize="15sp" android:textStyle="bold" app:layout_constraintStart_toEndOf="@id/imgAiBadge" app:layout_constraintTop_toTopOf="@id/imgAiBadge" app:layout_constraintEnd_toStartOf="@id/btnArrowForward" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Rome · Florence · Venice · ~€890" android:textColor="@color/cream" android:textSize="12sp" android:maxLines="1" android:ellipsize="end" app:layout_constraintStart_toStartOf="@id/txtAiPlanTitle" app:layout_constraintTop_toBottomOf="@id/txtAiPlanTitle" app:layout_constraintEnd_toStartOf="@id/btnArrowForward" />
+                        <ImageView android:id="@+id/btnArrowForward" android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_arrow_forward" app:tint="@color/cream" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/containerCompletedSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginTop="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Past adventures"
+                    android:textColor="@color/navy_blue_1"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="12dp">
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/imgCompletedFrame"
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            app:cardCornerRadius="12dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent">
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/interests_prelogin_img_4" />
+                        </androidx.cardview.widget.CardView>
+                        <TextView
+                            android:id="@+id/txtCompletedTitle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:text="Vienna, Austria"
+                            android:textColor="@color/navy_blue_1"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            app:layout_constraintStart_toEndOf="@id/imgCompletedFrame"
+                            app:layout_constraintTop_toTopOf="@id/imgCompletedFrame"
+                            app:layout_constraintEnd_toEndOf="parent" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="September 02 - 07 · 5 days"
+                            android:textColor="@color/text_muted"
+                            android:textSize="13sp"
+                            app:layout_constraintStart_toStartOf="@id/txtCompletedTitle"
+                            app:layout_constraintTop_toBottomOf="@id/txtCompletedTitle"
+                            app:layout_constraintEnd_toEndOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:background="@color/white"
+        android:elevation="8dp"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical"><ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_discover" app:tint="#AAAAAA" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Discover" android:textColor="#AAAAAA" android:textSize="10sp" /></LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical"><ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_map" app:tint="#AAAAAA" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Map" android:textColor="#AAAAAA" android:textSize="10sp" /></LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical"><ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_heart" app:tint="@color/light_turq_1" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Wishlist" android:textColor="@color/light_turq_1" android:textSize="10sp" android:textStyle="bold" /></LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical"><ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_ai" app:tint="#AAAAAA" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="AI" android:textColor="#AAAAAA" android:textSize="10sp" /></LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

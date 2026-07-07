@@ -55,6 +55,14 @@
         <activity
             android:name=".SearchActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".ExploreActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".JourneyActivity"
+            android:exported="false" />
     </application>
 
 
