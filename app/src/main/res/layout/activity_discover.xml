@@ -70,7 +70,7 @@
             android:drawableStart="@drawable/ic_search"
             android:drawablePadding="10dp"
             android:drawableTint="@color/beige"
-            android:hint="Search a country or city..."
+            android:hint="What's your travel mood?"
             android:inputType="text"
             android:paddingHorizontal="14dp"
             android:textColor="@color/white"
@@ -582,8 +582,10 @@
 
         </LinearLayout>
 
+
         <!-- AI -->
         <LinearLayout
+            android:id="@+id/btnAI"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"

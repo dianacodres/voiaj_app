@@ -47,6 +47,14 @@
         <activity
             android:name=".AccountSettingsActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".CityDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".SearchActivity"
+            android:exported="false" />
     </application>
 
 
