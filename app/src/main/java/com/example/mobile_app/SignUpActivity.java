@@ -59,6 +59,9 @@ public class SignUpActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         etConfirm  = findViewById(R.id.etConfirm);
 
+        PasswordToggleHelper.attach(etPassword);
+        PasswordToggleHelper.attach(etConfirm);
+
         // Șterge eroarea vizuală când utilizatorul reîncepe să scrie
         addClearErrorWatcher(etName);
         addClearErrorWatcher(etEmail);
@@ -158,10 +161,17 @@ public class SignUpActivity extends AppCompatActivity {
         anim.start();
         tvStepCount.setText("2/2");
 
+        String name = etName.getText().toString().trim();
+        String email = etEmail.getText().toString().trim();
+        String password = etPassword.getText().toString();
+
         progressBar.postDelayed(() -> {
             Intent intent = new Intent(SignUpActivity.this, InterestsActivity.class);
+            intent.putExtra("name", name);
+            intent.putExtra("email", email);
+            intent.putExtra("password", password);
             startActivity(intent);
-            btnContinue.setEnabled(true); // Re-activăm butonul în caz că se întoarce înapoi
+            btnContinue.setEnabled(true);
         }, 400);
     }
 

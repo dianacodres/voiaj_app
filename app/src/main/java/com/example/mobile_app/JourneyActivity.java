@@ -18,13 +18,22 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class JourneyActivity extends AppCompatActivity {
 
     private LinearLayout containerActiveSection;
     private LinearLayout containerCompletedSection;
+
+    private TripRepository tripRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +72,8 @@ public class JourneyActivity extends AppCompatActivity {
         // ── INITIALIZARE CONTINEARE TRASURI ──
         containerActiveSection = findViewById(R.id.containerActiveSection);
         containerCompletedSection = findViewById(R.id.containerCompletedSection);
+
+        tripRepository = new TripRepository();
 
         // ── LOGICĂ SWITCH PENTRU TOGGLE BUTTON ──
         // ── LOGICĂ SWITCH CU COLORARE DINAMICĂ (JAVA OVERRIDE) ──
@@ -162,5 +173,77 @@ public class JourneyActivity extends AppCompatActivity {
                 });
             }
         }
+    }
+
+    /**
+     * onResume, nu onCreate: daca navigarea intre taburi reordoneaza aceeasi
+     * instanta in fata (FLAG_ACTIVITY_REORDER_TO_FRONT), onCreate NU se mai
+     * ruleaza a doua oara, dar onResume da - asa raman datele mereu proaspete.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadTrips();
+    }
+
+    /**
+     * Incarca savedTrips (impartite in planned/draft dupa camp status) si completedTrips
+     * din Firestore, si populeaza cele 3 RecyclerView-uri.
+     */
+    private void loadTrips() {
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser == null) return;
+        String uid = firebaseUser.getUid();
+
+        RecyclerView recyclerPlanned = findViewById(R.id.recyclerPlanned);
+        RecyclerView recyclerDrafts = findViewById(R.id.recyclerDrafts);
+        RecyclerView recyclerCompleted = findViewById(R.id.recyclerCompleted);
+        View txtNoPlannedTrips = findViewById(R.id.txtNoPlannedTrips);
+        View txtNoDrafts = findViewById(R.id.txtNoDrafts);
+        View txtNoCompletedTrips = findViewById(R.id.txtNoCompletedTrips);
+
+        recyclerPlanned.setLayoutManager(new LinearLayoutManager(this));
+        recyclerDrafts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        recyclerCompleted.setLayoutManager(new LinearLayoutManager(this));
+
+        tripRepository.getSavedTrips(uid, new TripRepository.TripListCallback() {
+            @Override
+            public void onSuccess(List<Trip> savedTrips) {
+                List<Trip> planned = new ArrayList<>();
+                List<Trip> drafts = new ArrayList<>();
+                for (Trip trip : savedTrips) {
+                    if ("draft".equals(trip.getStatus())) {
+                        drafts.add(trip);
+                    } else {
+                        planned.add(trip);
+                    }
+                }
+
+                recyclerPlanned.setAdapter(new TripAdapter(planned, true));
+                txtNoPlannedTrips.setVisibility(planned.isEmpty() ? View.VISIBLE : View.GONE);
+
+                recyclerDrafts.setAdapter(new TripDraftAdapter(drafts));
+                txtNoDrafts.setVisibility(drafts.isEmpty() ? View.VISIBLE : View.GONE);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                txtNoPlannedTrips.setVisibility(View.VISIBLE);
+                txtNoDrafts.setVisibility(View.VISIBLE);
+            }
+        });
+
+        tripRepository.getCompletedTrips(uid, new TripRepository.TripListCallback() {
+            @Override
+            public void onSuccess(List<Trip> completedTrips) {
+                recyclerCompleted.setAdapter(new TripAdapter(completedTrips, false));
+                txtNoCompletedTrips.setVisibility(completedTrips.isEmpty() ? View.VISIBLE : View.GONE);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                txtNoCompletedTrips.setVisibility(View.VISIBLE);
+            }
+        });
     }
 }

@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/bg">
 
+
     <!-- HEADER turcoaz -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header"
@@ -19,7 +20,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- WELCOME BACK label mic -->
         <TextView
             android:id="@+id/txtWelcomeBack"
             android:layout_width="wrap_content"
@@ -31,7 +31,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Hi, Andrei 👋 -->
         <TextView
             android:id="@+id/txtHi"
             android:layout_width="wrap_content"
@@ -45,7 +44,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/txtWelcomeBack" />
 
-        <!-- Avatar AP -->
         <TextView
             android:id="@+id/txtAvatar"
             android:layout_width="42dp"
@@ -60,7 +58,9 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Search bar -->
+        <!-- Search bar - actioneaza ca buton, NU ca input real.
+             focusable=false + focusableInTouchMode=false previn tastatura,
+             OnClickListener-ul din Java functioneaza normal la atingere. -->
         <EditText
             android:id="@+id/searchBar"
             android:layout_width="0dp"
@@ -71,7 +71,11 @@
             android:drawablePadding="10dp"
             android:drawableTint="@color/beige"
             android:hint="What's your travel mood?"
-            android:inputType="text"
+            android:inputType="none"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:cursorVisible="false"
+            android:longClickable="false"
             android:paddingHorizontal="14dp"
             android:textColor="@color/white"
             android:textColorHint="#99FFFFFF"
@@ -81,7 +85,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- BODY scrollabil -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -96,8 +99,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- YOUR NEXT TRIP label -->
             <LinearLayout
+                android:id="@+id/sectionNextTripLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -123,8 +126,8 @@
 
             </LinearLayout>
 
-            <!-- Card Next Trip -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardNextTrip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
@@ -132,109 +135,143 @@
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="14dp">
-
-                <!-- Imagine destinatie -->
-                <ImageView
-                    android:id="@+id/imgTrip"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
-                    android:background="@drawable/bg_card_top_rounded"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/roma"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <!-- ROME, ITALY label mic -->
-                <TextView
-                    android:id="@+id/txtDestinationLabel"
-                    android:layout_width="0dp"
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:letterSpacing="0.1"
-                    android:text="ROME, ITALY"
-                    android:textColor="@color/light_turq_1"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/imgTrip"
-                    app:layout_constraintTop_toTopOf="@id/imgTrip" />
+                    android:padding="14dp">
 
-                <!-- 12 days to go -->
-                <LinearLayout
-                    android:id="@+id/layoutDays"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/imgTrip"
-                    app:layout_constraintTop_toBottomOf="@id/txtDestinationLabel">
+                    <ImageView
+                        android:id="@+id/imgTrip"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:background="@drawable/bg_card_top_rounded"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/rome"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:id="@+id/txtDestinationLabel"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-black"
-                        android:text="12"
-                        android:textColor="@color/navy_blue_1"
-                        android:textSize="32sp"
-                        android:textStyle="bold" />
+                        android:layout_marginStart="12dp"
+                        android:letterSpacing="0.1"
+                        android:text="ROME, ITALY"
+                        android:textColor="@color/light_turq_1"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/imgTrip"
+                        app:layout_constraintTop_toTopOf="@id/imgTrip" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutDays"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/imgTrip"
+                        app:layout_constraintTop_toBottomOf="@id/txtDestinationLabel">
+
+                        <TextView
+                            android:id="@+id/txtCountdownNumber"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="12"
+                            android:textColor="@color/navy_blue_1"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/txtCountdownLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:fontFamily="sans-serif-black"
+                            android:text="days to go"
+                            android:textColor="@color/navy_blue_2"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:id="@+id/txtDates"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:fontFamily="sans-serif-black"
-                        android:text="days to go"
-                        android:textColor="@color/navy_blue_2"
-                        android:textSize="22sp"
-                        android:textStyle="bold" />
+                        android:layout_marginStart="12dp"
+                        android:layout_marginTop="2dp"
+                        android:text="May 14 – 18 · 4 days"
+                        android:textColor="#999999"
+                        android:textSize="12sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/imgTrip"
+                        app:layout_constraintTop_toBottomOf="@id/layoutDays" />
 
-                </LinearLayout>
+                    <ProgressBar
+                        android:id="@+id/progressTrip"
+                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                        android:layout_width="0dp"
+                        android:layout_height="6dp"
+                        android:layout_marginStart="12dp"
+                        android:layout_marginTop="8dp"
+                        android:max="100"
+                        android:progress="40"
+                        android:progressBackgroundTint="#E0E0E0"
+                        android:progressTint="@color/light_turq_1"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/imgTrip"
+                        app:layout_constraintTop_toBottomOf="@id/txtDates" />
 
-                <!-- May 14 - 18 -->
-                <TextView
-                    android:id="@+id/txtDates"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginTop="2dp"
-                    android:text="May 14 – 18 · 4 days"
-                    android:textColor="#999999"
-                    android:textSize="12sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/imgTrip"
-                    app:layout_constraintTop_toBottomOf="@id/layoutDays" />
+                    <!-- Placeholder afisat cand nu exista nicio calatorie planificata viitoare -->
+                    <LinearLayout
+                        android:id="@+id/layoutNoTripPlaceholder"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingVertical="14dp"
+                        android:visibility="gone"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent">
 
-                <!-- Progress bar -->
-                <ProgressBar
-                    android:id="@+id/progressTrip"
-                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                    android:layout_width="0dp"
-                    android:layout_height="6dp"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginTop="8dp"
-                    android:max="100"
-                    android:progress="40"
-                    android:progressBackgroundTint="#E0E0E0"
-                    android:progressTint="@color/light_turq_1"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/imgTrip"
-                    app:layout_constraintTop_toBottomOf="@id/txtDates" />
+                        <ImageView
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_wand"
+                            app:tint="@color/light_turq_1" />
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:fontFamily="sans-serif-black"
+                            android:gravity="center"
+                            android:text="What are you waiting for?\nPlan your next trip!"
+                            android:textColor="@color/navy_blue_1"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/btnPlanTrip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
                 app:cardBackgroundColor="@color/blue"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp">
@@ -243,17 +280,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <!-- Overlay degradeu dreapta -->
                     <View
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:background="@drawable/bg_plan_overlay"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.0"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_bias="0.0" />
 
-                    <!-- Iconița wand în cerc beige -->
                     <ImageView
                         android:id="@+id/imgWand"
                         android:layout_width="48dp"
@@ -311,7 +348,6 @@
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Recommended for you -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -341,7 +377,6 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Carduri destinatii - orizontal -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -349,7 +384,6 @@
                 android:orientation="horizontal"
                 android:weightSum="2">
 
-                <!-- Card Paris -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="0dp"
                     android:layout_height="160dp"
@@ -363,18 +397,17 @@
                         android:layout_height="match_parent">
 
                         <ImageView
+                            android:id="@+id/imgRec1"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:scaleType="centerCrop"
                             android:src="@drawable/paris" />
 
-                        <!-- Overlay întunecat -->
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:background="@drawable/bg_card_gradient" />
 
-                        <!-- Rating -->
                         <TextView
                             android:id="@+id/txtRating1"
                             android:layout_width="wrap_content"
@@ -390,8 +423,8 @@
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
 
-                        <!-- Titlu Paris -->
                         <TextView
+                            android:id="@+id/txtCityName1"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_margin="8dp"
@@ -421,7 +454,6 @@
 
                 </androidx.cardview.widget.CardView>
 
-                <!-- Card Barcelona -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="0dp"
                     android:layout_height="160dp"
@@ -435,6 +467,7 @@
                         android:layout_height="match_parent">
 
                         <ImageView
+                            android:id="@+id/imgRec2"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:scaleType="centerCrop"
@@ -461,6 +494,7 @@
                             app:layout_constraintTop_toTopOf="parent" />
 
                         <TextView
+                            android:id="@+id/txtCityName2"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_margin="8dp"
@@ -496,8 +530,6 @@
 
     </androidx.core.widget.NestedScrollView>
 
-
-    <!-- BOTTOM NAVIGATION BAR -->
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="0dp"
@@ -510,7 +542,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <!-- Discover (activ) -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -534,7 +565,6 @@
 
         </LinearLayout>
 
-        <!-- Map -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -558,7 +588,6 @@
 
         </LinearLayout>
 
-        <!-- Wishlist -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -582,8 +611,6 @@
 
         </LinearLayout>
 
-
-        <!-- AI -->
         <LinearLayout
             android:id="@+id/btnAI"
             android:layout_width="0dp"

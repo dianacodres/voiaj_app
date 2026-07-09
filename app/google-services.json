@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "784752648883",
+    "project_id": "voiajapp",
+    "storage_bucket": "voiajapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:784752648883:android:1544e4a5ca3628a37ac6c6",
+        "android_client_info": {
+          "package_name": "com.example.mobile_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "784752648883-lnl2kvo6p9g7qnl8dk7j4bubd7i72hpb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMuPIgcF1BaFaHBFM_zogyjukIeuPuQIo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "784752648883-lnl2kvo6p9g7qnl8dk7j4bubd7i72hpb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

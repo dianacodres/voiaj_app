@@ -4,8 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -13,54 +14,25 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class SearchActivity extends AppCompatActivity {
 
-    // Model simplu pentru oras
-    static class City {
-        String name, region;
-        float rating;
-        int imageRes;
-        City(String name, String region, float rating, int imageRes) {
-            this.name = name; this.region = region;
-            this.rating = rating; this.imageRes = imageRes;
-        }
-    }
-
-    // Date hardcodate per mood
-    private List<City> getHistoryCities() {
-        List<City> list = new ArrayList<>();
-        list.add(new City("Rome", "Lazio · Capital", 4.8f, R.drawable.roma));
-        list.add(new City("Florence", "Tuscany", 4.8f, R.drawable.roma));
-        list.add(new City("Venice", "Veneto", 4.7f, R.drawable.roma));
-        list.add(new City("Milan", "Lombardy", 4.6f, R.drawable.roma));
-        return list;
-    }
-
-    private List<City> getBeachCities() {
-        List<City> list = new ArrayList<>();
-        list.add(new City("Amalfi", "Campania", 4.9f, R.drawable.roma));
-        list.add(new City("Sardinia", "Island", 4.8f, R.drawable.roma));
-        list.add(new City("Sicily", "Island", 4.7f, R.drawable.roma));
-        return list;
-    }
-
-    private List<City> getFoodCities() {
-        List<City> list = new ArrayList<>();
-        list.add(new City("Naples", "Campania", 4.7f, R.drawable.roma));
-        list.add(new City("Bologna", "Emilia-Romagna", 4.8f, R.drawable.roma));
-        list.add(new City("Rome", "Lazio · Capital", 4.8f, R.drawable.roma));
-        return list;
-    }
+    private CityRepository cityRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_search);
+
+        cityRepository = new CityRepository();
 
         ViewCompat.setOnApplyWindowInsetsListener(
                 findViewById(R.id.searchRoot), (v, insets) -> {
@@ -71,81 +43,99 @@ public class SearchActivity extends AppCompatActivity {
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Click pe mood cards
         findViewById(R.id.moodHistory).setOnClickListener(v ->
-                showMoodBottomSheet("History & Culture", "4 destinations", getHistoryCities()));
+                loadMoodCities("History & Culture", "historical"));
         findViewById(R.id.moodBeach).setOnClickListener(v ->
-                showMoodBottomSheet("Sun & Beach", "3 destinations", getBeachCities()));
+                loadMoodCities("Sun & Beach", "sun&beach"));
         findViewById(R.id.moodFood).setOnClickListener(v ->
-                showMoodBottomSheet("Food & Wine", "3 destinations", getFoodCities()));
+                loadMoodCities("Food & Wine", "food&wine"));
         findViewById(R.id.moodArt).setOnClickListener(v ->
-                showMoodBottomSheet("Art & Museums", "3 destinations", getHistoryCities()));
+                loadMoodCitiesAny("Art & Museums", Arrays.asList("art", "museums")));
         findViewById(R.id.moodNature).setOnClickListener(v ->
-                showMoodBottomSheet("Nature & Hiking", "3 destinations", getBeachCities()));
+                loadMoodCities("Nature", "nature"));
         findViewById(R.id.moodBudget).setOnClickListener(v ->
-                showMoodBottomSheet("Budget Travel", "3 destinations", getFoodCities()));
+                loadMoodCities("Budget Travel", "budget"));
     }
 
-    private void showMoodBottomSheet(String title, String subtitle, List<City> cities) {
+    private void loadMoodCities(String title, String keyword) {
+        cityRepository.getCitiesByKeyword(keyword, new CityRepository.CityListCallback() {
+            @Override
+            public void onSuccess(List<City> cities) {
+                showMoodBottomSheet(title, cities);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(SearchActivity.this,
+                        "Nu am putut incarca orasele: " + errorMessage, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void loadMoodCitiesAny(String title, List<String> keywords) {
+        cityRepository.getCitiesByAnyKeyword(keywords, new CityRepository.CityListCallback() {
+            @Override
+            public void onSuccess(List<City> cities) {
+                showMoodBottomSheet(title, cities);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(SearchActivity.this,
+                        "Nu am putut incarca orasele: " + errorMessage, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /**
+     * Afiseaza orasele gasite pentru un mood, grupate alfabetic pe tara -
+     * exact acelasi stil ca la "Change" din PlanTripActivity, dar fara bara de cautare
+     * (aici lista e deja filtrata dupa mood, nu mai are sens sa cauti in plus).
+     */
+    private void showMoodBottomSheet(String title, List<City> cities) {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.BottomSheetStyle);
         View view = LayoutInflater.from(this)
                 .inflate(R.layout.fragment_mood_bottom_sheet, null);
 
         ((TextView) view.findViewById(R.id.txtMoodTitle)).setText(title);
-        ((TextView) view.findViewById(R.id.txtMoodSub)).setText(subtitle);
+        ((TextView) view.findViewById(R.id.txtMoodSub)).setText(
+                cities.size() + (cities.size() == 1 ? " destination" : " destinations"));
+
+        List<City> sorted = new ArrayList<>(cities);
+        Collections.sort(sorted, (a, b) -> {
+            int countryCompare = capitalize(a.getCountryId()).compareToIgnoreCase(capitalize(b.getCountryId()));
+            if (countryCompare != 0) return countryCompare;
+            return a.getName().compareToIgnoreCase(b.getName());
+        });
+
+        List<CityListRow> rows = new ArrayList<>();
+        String lastCountry = null;
+        for (City city : sorted) {
+            String countryLabel = capitalize(city.getCountryId());
+            if (!countryLabel.equals(lastCountry)) {
+                rows.add(CityListRow.header(countryLabel));
+                lastCountry = countryLabel;
+            }
+            rows.add(CityListRow.cityRow(city));
+        }
 
         RecyclerView rv = view.findViewById(R.id.rvCities);
         rv.setLayoutManager(new LinearLayoutManager(this));
-        rv.setAdapter(new CityAdapter(cities, city -> {
+        rv.setAdapter(new MoodCityAdapter(rows, city -> {
             dialog.dismiss();
-            startActivity(new Intent(this, CityDetailActivity.class));
+            Intent intent = new Intent(this, CityDetailActivity.class);
+            intent.putExtra("cityId", city.getId());
+            intent.putExtra("cityName", city.getName());
+            intent.putExtra("countryId", city.getCountryId());
+            startActivity(intent);
         }));
 
         dialog.setContentView(view);
         dialog.show();
     }
 
-    // Adapter simplu pentru RecyclerView
-    static class CityAdapter extends RecyclerView.Adapter<CityAdapter.VH> {
-        interface OnCityClick { void onClick(City city); }
-        List<City> cities;
-        OnCityClick listener;
-
-        CityAdapter(List<City> cities, OnCityClick listener) {
-            this.cities = cities;
-            this.listener = listener;
-        }
-
-        static class VH extends RecyclerView.ViewHolder {
-            TextView name, region, rating;
-            android.widget.ImageView img;
-            VH(View v) {
-                super(v);
-                name = v.findViewById(R.id.txtCityName);
-                region = v.findViewById(R.id.txtCityRegion);
-                rating = v.findViewById(R.id.txtRating);
-                img = v.findViewById(R.id.imgCity);
-            }
-        }
-
-        @Override
-        public VH onCreateViewHolder(ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_city_bottom_sheet, parent, false);
-            return new VH(v);
-        }
-
-        @Override
-        public void onBindViewHolder(VH holder, int position) {
-            City city = cities.get(position);
-            holder.name.setText(city.name);
-            holder.region.setText(city.region);
-            holder.rating.setText("★ " + city.rating);
-            holder.img.setImageResource(city.imageRes);
-            holder.itemView.setOnClickListener(v -> listener.onClick(city));
-        }
-
-        @Override
-        public int getItemCount() { return cities.size(); }
+    private String capitalize(String text) {
+        if (text == null || text.isEmpty()) return text;
+        return Character.toUpperCase(text.charAt(0)) + text.substring(1);
     }
 }

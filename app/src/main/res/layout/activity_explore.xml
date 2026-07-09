@@ -81,7 +81,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/roma" />
+                        android:src="@drawable/rome" />
                 </androidx.cardview.widget.CardView>
 
                 <TextView
@@ -283,7 +283,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/roma" />
+                    android:src="@drawable/rome" />
 
                 <View
                     android:layout_width="match_parent"

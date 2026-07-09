@@ -21,49 +21,46 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".LoginActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustPan" />
-
         <activity
             android:name=".DiscoverActivity"
             android:exported="false" />
-
-        <activity android:name=".InterestsActivity" android:exported="false" />
-        <activity android:name=".SummaryActivity" android:exported="false" />
-
+        <activity
+            android:name=".InterestsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SummaryActivity"
+            android:exported="false" />
         <activity
             android:name=".SignUpActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false">
-        </activity>
-
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"></activity>
         <activity
             android:name=".PlanTripActivity"
             android:exported="false" />
-        
         <activity
             android:name=".AccountSettingsActivity"
             android:exported="false" />
-
         <activity
             android:name=".CityDetailActivity"
             android:exported="false" />
-
         <activity
             android:name=".SearchActivity"
             android:exported="false" />
-
         <activity
             android:name=".ExploreActivity"
             android:exported="false" />
-
         <activity
             android:name=".JourneyActivity"
             android:exported="false" />
+        <activity android:name=".RecommendedActivity" />
+        <activity
+            android:name=".AllItemsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
-
 
 </manifest>

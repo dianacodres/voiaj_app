@@ -12,4 +12,6 @@
     <string name="congrats">Felicitări!</string>
     <string name="selection_ready">Selecția ta este gata.</string>
     <string name="summary_text">%1$s\nAi ales %2$d interese.</string>
+
+    <string name="default_web_client_id">784752648883-lnl2kvo6p9g7qnl8dk7j4bubd7i72hpb.apps.googleusercontent.com</string>
 </resources>

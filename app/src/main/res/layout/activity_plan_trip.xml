@@ -87,7 +87,7 @@
                         android:layout_width="80dp"
                         android:layout_height="80dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/roma"
+                        android:src="@drawable/rome"
                         android:background="@drawable/bg_card_top_rounded"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
@@ -208,15 +208,15 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:padding="16dp"
+                        android:padding="10dp"
                         android:gravity="center"
                         android:orientation="horizontal">
 
                         <!-- Buton minus cerc outline -->
                         <TextView
                             android:id="@+id/btnMinus"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:background="@drawable/bg_day_btn"
                             android:gravity="center"
                             android:text="−"
@@ -238,7 +238,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="4"
                                 android:textColor="@color/navy_blue_1"
-                                android:textSize="56sp"
+                                android:textSize="34sp"
                                 android:textStyle="bold"
                                 android:fontFamily="sans-serif-black" />
 
@@ -248,15 +248,15 @@
                                 android:layout_height="wrap_content"
                                 android:text="3 nights"
                                 android:textColor="#999999"
-                                android:textSize="14sp" />
+                                android:textSize="12sp" />
 
                         </LinearLayout>
 
                         <!-- Buton plus cerc beige -->
                         <TextView
                             android:id="@+id/btnPlus"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:background="@drawable/bg_plus_btn"
                             android:gravity="center"
                             android:text="+"
@@ -272,14 +272,14 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="17dp"
                     android:gravity="center"
                     android:orientation="horizontal">
 
                     <TextView
                         android:id="@+id/chipWeekend"
                         android:layout_width="wrap_content"
-                        android:layout_height="40dp"
+                        android:layout_height="37dp"
                         android:layout_marginEnd="8dp"
                         android:background="@drawable/bg_chip"
                         android:gravity="center"
@@ -292,7 +292,7 @@
                     <TextView
                         android:id="@+id/chip1Week"
                         android:layout_width="wrap_content"
-                        android:layout_height="40dp"
+                        android:layout_height="37dp"
                         android:layout_marginEnd="8dp"
                         android:background="@drawable/bg_chip_selected"
                         android:gravity="center"
@@ -305,13 +305,48 @@
                     <TextView
                         android:id="@+id/chip2Weeks"
                         android:layout_width="wrap_content"
-                        android:layout_height="40dp"
+                        android:layout_height="37dp"
                         android:background="@drawable/bg_chip"
                         android:gravity="center"
                         android:paddingHorizontal="22dp"
                         android:text="2 weeks"
                         android:textColor="@color/navy_blue_1"
                         android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="23dp"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <TextView
+                        android:id="@+id/btnSelectAttractions"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_square_button_dark"
+                        android:gravity="center"
+                        android:text="Attractions"
+                        android:textColor="@color/white"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnSelectRestaurants"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_square_button_dark"
+                        android:gravity="center"
+                        android:text="Restaurants"
+                        android:textColor="@color/white"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
 
                 </LinearLayout>
