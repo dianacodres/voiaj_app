@@ -102,7 +102,7 @@
         android:text="I already have an account"
         android:textColor="@color/navy_blue_2"
         android:textStyle="bold"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:backgroundTint="@color/sky_blue_2"
         app:cornerRadius="16dp"
         android:fontFamily="sans-serif-black"

@@ -33,7 +33,7 @@
         android:layout_marginHorizontal="24dp"
         android:layout_marginBottom="12dp"
         android:background="@drawable/bg_input_field"
-        android:drawableStart="@drawable/ic_email"
+        android:drawableStart="@drawable/ic_search"
         android:drawablePadding="10dp"
         android:hint="Search..."
         android:inputType="text"
@@ -53,7 +53,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="Nu am gasit nimic"
+        android:text="Nothing found"
         android:textColor="#999999"
         android:textSize="14sp"
         android:visibility="gone" />

@@ -14,10 +14,22 @@ import java.util.List;
 /** Adapter pentru cardurile mici de Drafts, afisate orizontal (glisabile). */
 public class TripDraftAdapter extends RecyclerView.Adapter<TripDraftAdapter.DraftViewHolder> {
 
-    private final List<Trip> drafts;
+    interface OnDraftClick {
+        void onClick(Trip trip);
+    }
 
-    public TripDraftAdapter(List<Trip> drafts) {
+    interface OnDraftLongClick {
+        void onLongClick(Trip trip);
+    }
+
+    private final List<Trip> drafts;
+    private final OnDraftClick clickListener;
+    private final OnDraftLongClick longClickListener;
+
+    public TripDraftAdapter(List<Trip> drafts, OnDraftClick clickListener, OnDraftLongClick longClickListener) {
         this.drafts = drafts;
+        this.clickListener = clickListener;
+        this.longClickListener = longClickListener;
     }
 
     @NonNull
@@ -43,6 +55,15 @@ public class TripDraftAdapter extends RecyclerView.Adapter<TripDraftAdapter.Draf
             imageResId = R.drawable.interests_prelogin_img_1;
         }
         holder.imgDraft.setImageResource(imageResId);
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) longClickListener.onLongClick(trip);
+            return true;
+        });
+
+        holder.itemView.setOnClickListener(v -> {
+            if (clickListener != null) clickListener.onClick(trip);
+        });
     }
 
     @Override

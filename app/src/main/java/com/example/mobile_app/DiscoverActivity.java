@@ -134,6 +134,9 @@ public class DiscoverActivity extends AppCompatActivity {
 
             if (btnNavAi != null) {
                 btnNavAi.setOnClickListener(v -> {
+                    Intent intent = new Intent(DiscoverActivity.this, AIHubActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                    startActivity(intent);
                     overridePendingTransition(0, 0);
                 });
             }
@@ -369,7 +372,7 @@ public class DiscoverActivity extends AppCompatActivity {
         }
     }
 
-    /** Incarca numele real al userului logat si il pune in "Hi, {prenume} 👋". */
+    /** Incarca numele real al userului logat, pune prenumele in "Hi, {prenume}" si initialele in bulina. */
     private void loadUserGreeting() {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser == null) return;
@@ -383,11 +386,16 @@ public class DiscoverActivity extends AppCompatActivity {
                     String firstName = user.getName().trim().split("\\s+")[0];
                     txtHi.setText("Hi, " + firstName + " 👋");
                 }
+
+                TextView txtAvatar = findViewById(R.id.txtAvatar);
+                if (txtAvatar != null && user.getAvatarInitials() != null) {
+                    txtAvatar.setText(user.getAvatarInitials());
+                }
             }
 
             @Override
             public void onError(String errorMessage) {
-                // Lasam textul static din XML ("Hi, Andrei") daca nu putem incarca profilul
+                // Lasam textul static din XML daca nu putem incarca profilul
             }
         });
     }

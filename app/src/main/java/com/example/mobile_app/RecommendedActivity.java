@@ -67,7 +67,7 @@ public class RecommendedActivity extends AppCompatActivity {
                     @Override
                     public void onError(String errorMessage) {
                         Toast.makeText(RecommendedActivity.this,
-                                "Nu am putut incarca orasele: " + errorMessage, Toast.LENGTH_LONG).show();
+                                "Couldn't load cities: " + errorMessage, Toast.LENGTH_LONG).show();
                     }
                 });
             }
@@ -75,7 +75,7 @@ public class RecommendedActivity extends AppCompatActivity {
             @Override
             public void onError(String errorMessage) {
                 Toast.makeText(RecommendedActivity.this,
-                        "Nu am putut incarca profilul: " + errorMessage, Toast.LENGTH_LONG).show();
+                        "Couldn't load profile: " + errorMessage, Toast.LENGTH_LONG).show();
             }
         });
     }

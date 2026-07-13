@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/navy_blue_2">
+    android:background="@color/blue">
 
     <!-- Logo -->
     <ImageView
@@ -87,7 +87,7 @@
             android:background="@drawable/bg_input_field"
             android:drawableStart="@drawable/ic_email"
             android:drawablePadding="10dp"
-            android:hint="andrei.pop@email.com"
+            android:hint="andrei.popescu@email.com"
             android:inputType="textEmailAddress"
             android:paddingHorizontal="14dp"
             android:textSize="14sp"

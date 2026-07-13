@@ -141,7 +141,7 @@ public class InterestsActivity extends AppCompatActivity {
                 if (colorResId != 0) {
                     imageView.setImageResource(colorResId);
                 } else {
-                    throw new Exception("Nu s-a găsit nicio resursă grafică sau de fallback universal.");
+                    throw new Exception("No graphic resource or universal fallback found.");
                 }
             }
         } catch (Exception e) {
@@ -221,7 +221,7 @@ public class InterestsActivity extends AppCompatActivity {
     /** Flux signup cu email (SignUpActivity -> aici). */
     private void createEmailAccount(List<String> interests) {
         if (pendingName == null || pendingEmail == null || pendingPassword == null) {
-            Toast.makeText(this, "Date lipsa din pasul anterior. Reia inregistrarea.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Missing data from the previous step. Please restart signup.", Toast.LENGTH_LONG).show();
             btnContinue.setEnabled(true);
             return;
         }
@@ -235,7 +235,7 @@ public class InterestsActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(String errorMessage) {
-                        showCreationError("Nu am putut crea contul: " + errorMessage);
+                        showCreationError("Couldn't create the account: " + errorMessage);
                     }
                 });
     }
@@ -243,7 +243,7 @@ public class InterestsActivity extends AppCompatActivity {
     /** Flux prima logare cu Google (LoginActivity -> aici, cont Auth deja creat). */
     private void createGoogleAccount(List<String> interests) {
         if (pendingUid == null || pendingEmail == null) {
-            Toast.makeText(this, "Date lipsa din pasul anterior. Reia autentificarea.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Missing data from the previous step. Please restart sign-in.", Toast.LENGTH_LONG).show();
             btnContinue.setEnabled(true);
             return;
         }
@@ -259,7 +259,7 @@ public class InterestsActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                showCreationError("Nu am putut salva profilul: " + errorMessage);
+                showCreationError("Couldn't save the profile: " + errorMessage);
             }
         });
     }

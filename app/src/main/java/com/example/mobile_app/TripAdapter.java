@@ -56,8 +56,8 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
             holder.layoutBadge.setVisibility(View.VISIBLE);
 
             if (trip.isOngoing()) {
-                holder.txtBadgeDays.setText("ON");
-                holder.txtBadgeLabel.setText("TRIP");
+                holder.txtBadgeDays.setText("");
+                holder.txtBadgeLabel.setText("NOW");
             } else {
                 holder.txtBadgeDays.setText(String.valueOf(trip.getDaysUntilTrip()));
                 holder.txtBadgeLabel.setText("DAYS");
@@ -74,7 +74,8 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
 
     private String formatSubtitle(Trip trip) {
         if (trip.getStartDate() == null || trip.getEndDate() == null) {
-            return trip.getDaysCount() + "-day idea";
+            String dayLabel = trip.getDaysCount() == 1 ? "day" : "days";
+            return trip.getDaysCount() + "-" + dayLabel + " idea";
         }
         try {
             SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);

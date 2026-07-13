@@ -26,6 +26,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -42,7 +43,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
     private final Set<String> selectedKeys = new HashSet<>();
 
     private AuthRepository authRepository;
-    private User currentUser; // profilul curent, incarcat din Firestore
+    private User currentUser;
 
     private static class CardConfig {
         final int id;
@@ -95,7 +96,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
         authRepository = new AuthRepository();
         loadCurrentUserProfile();
 
-        // 1. POP-UP PROFIL (doar numele se salveaza in Firestore; emailul e doar afisat)
+        // 1. EDIT PROFILE BOTTOM SHEET
         findViewById(R.id.btnEditProfile).setOnClickListener(v -> {
             BottomSheetDialog profileDialog = new BottomSheetDialog(this);
             View view = getLayoutInflater().inflate(R.layout.layout_bottom_sheet_edit_profile, null);
@@ -106,17 +107,17 @@ public class AccountSettingsActivity extends AppCompatActivity {
             EditText edtPopEmail = view.findViewById(R.id.edtPopEmail);
             edtPopName.setText(txtUserName.getText().toString());
             edtPopEmail.setText(txtUserEmail.getText().toString());
-            edtPopEmail.setEnabled(false); // schimbarea emailului necesita flux separat de re-autentificare
+            edtPopEmail.setEnabled(false);
 
             view.findViewById(R.id.btnDiscardProfile).setOnClickListener(db -> profileDialog.dismiss());
             view.findViewById(R.id.btnSaveProfile).setOnClickListener(sb -> {
                 String newName = edtPopName.getText().toString().trim();
                 if (TextUtils.isEmpty(newName)) {
-                    Toast.makeText(this, "Numele nu poate fi gol", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if (currentUser == null) {
-                    Toast.makeText(this, "Profilul nu a fost incarcat inca.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Profile not loaded yet.", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -125,14 +126,18 @@ public class AccountSettingsActivity extends AppCompatActivity {
                     public void onSuccess(User user) {
                         currentUser = user;
                         txtUserName.setText(user.getName());
+                        TextView txtAvatar = findViewById(R.id.txtAvatar);
+                        if (txtAvatar != null && user.getAvatarInitials() != null) {
+                            txtAvatar.setText(user.getAvatarInitials());
+                        }
                         profileDialog.dismiss();
-                        Toast.makeText(AccountSettingsActivity.this, "Profil actualizat", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AccountSettingsActivity.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(String errorMessage) {
                         Toast.makeText(AccountSettingsActivity.this,
-                                "Eroare la salvare: " + errorMessage, Toast.LENGTH_LONG).show();
+                                "Error saving: " + errorMessage, Toast.LENGTH_LONG).show();
                     }
                 });
             });
@@ -140,11 +145,11 @@ public class AccountSettingsActivity extends AppCompatActivity {
             profileDialog.show();
         });
 
-        // 2. POP-UP PAROLA (doar pentru conturi cu authProvider = email)
+        // 2. CHANGE PASSWORD BOTTOM SHEET
         findViewById(R.id.btnMenuChangePassword).setOnClickListener(v -> {
             if (currentUser != null && "google".equals(currentUser.getAuthProvider())) {
                 Toast.makeText(this,
-                        "Contul tau e conectat prin Google, parola se gestioneaza din contul Google.",
+                        "Your account is connected via Google. Password must be managed inside your Google Account.",
                         Toast.LENGTH_LONG).show();
                 return;
             }
@@ -158,16 +163,19 @@ public class AccountSettingsActivity extends AppCompatActivity {
             EditText edtNewPassword = passView.findViewById(R.id.edtNewPassword);
             MaterialButton btnSubmit = passView.findViewById(R.id.btnUpdatePasswordSubmit);
 
+            PasswordToggleHelper.attach(edtCurrentPassword);
+            PasswordToggleHelper.attach(edtNewPassword);
+
             btnSubmit.setOnClickListener(view -> {
                 String currentPassword = edtCurrentPassword.getText().toString();
                 String newPassword = edtNewPassword.getText().toString();
 
                 if (TextUtils.isEmpty(currentPassword)) {
-                    edtCurrentPassword.setError("Introdu parola curenta");
+                    edtCurrentPassword.setError("Please enter your current password");
                     return;
                 }
                 if (TextUtils.isEmpty(newPassword) || newPassword.length() < 6) {
-                    edtNewPassword.setError("Parola noua trebuie sa aiba minim 6 caractere");
+                    edtNewPassword.setError("New password must be at least 6 characters long");
                     return;
                 }
 
@@ -175,7 +183,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
                 authRepository.changePassword(currentPassword, newPassword, new AuthRepository.SimpleCallback() {
                     @Override
                     public void onSuccess() {
-                        Toast.makeText(AccountSettingsActivity.this, "Parola a fost schimbata", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AccountSettingsActivity.this, "Password updated successfully", Toast.LENGTH_SHORT).show();
                         passwordDialog.dismiss();
                     }
 
@@ -183,18 +191,30 @@ public class AccountSettingsActivity extends AppCompatActivity {
                     public void onError(String errorMessage) {
                         btnSubmit.setEnabled(true);
                         Toast.makeText(AccountSettingsActivity.this,
-                                "Nu am putut schimba parola: " + errorMessage, Toast.LENGTH_LONG).show();
+                                "Couldn't change password: " + errorMessage, Toast.LENGTH_LONG).show();
                     }
                 });
             });
 
-            passView.findViewById(R.id.txtPopUpForgotPassword).setOnClickListener(view -> passwordDialog.dismiss());
+            // ── IMPLEMENTARE CORECTĂ PENTRU PAROLA UITATĂ DIN POP-UP ──
+            passView.findViewById(R.id.txtPopUpForgotPassword).setOnClickListener(view -> {
+                passwordDialog.dismiss();
+                if (currentUser != null && currentUser.getEmail() != null) {
+                    FirebaseAuth.getInstance().sendPasswordResetEmail(currentUser.getEmail())
+                            .addOnCompleteListener(task -> {
+                                if (task.isSuccessful()) {
+                                    Toast.makeText(AccountSettingsActivity.this, "A secure password reset link has been sent to " + currentUser.getEmail(), Toast.LENGTH_LONG).show();
+                                } else {
+                                    Toast.makeText(AccountSettingsActivity.this, "Failed to send reset link.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                }
+            });
             passwordDialog.show();
         });
 
-        // 3. NOTIFICATII (local, UI only - fara camp in Firestore momentan)
+        // 3. NOTIFICATIONS
         SwitchMaterial switchNotifications = findViewById(R.id.switchNotifications);
-
         int colorActiveThumb = ContextCompat.getColor(this, R.color.sky_blue_2);
         int colorMutedThumb = ContextCompat.getColor(this, R.color.text_muted);
 
@@ -213,7 +233,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
             switchNotifications.setTrackTintList(ColorStateList.valueOf(colorMutedThumb));
         }
 
-        // 4. POP-UP INTERESE (acum salveaza in Firestore, nu doar SharedPreferences)
+        // 4. EDIT INTERESTS BOTTOM SHEET
         findViewById(R.id.btnMenuChangeInterests).setOnClickListener(v -> {
             BottomSheetDialog interestsDialog = new BottomSheetDialog(this);
             View intView = getLayoutInflater().inflate(R.layout.layout_bottom_sheet_interests, null);
@@ -226,7 +246,6 @@ public class AccountSettingsActivity extends AppCompatActivity {
                 selectedKeys.addAll(currentUser.getInterests());
             }
 
-            // Keys aliniate cu schema reala din Firestore (beaches, food, cities, mountains, culture, nature)
             CardConfig[] configs = {
                     new CardConfig(R.id.cardBeaches, "beaches", "Beaches", "prelogin_img_1"),
                     new CardConfig(R.id.cardFood, "food", "Food", "prelogin_img_2"),
@@ -255,7 +274,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
                             @Override
                             public void onSuccess(User user) {
                                 currentUser = user;
-                                Toast.makeText(AccountSettingsActivity.this, "Interese actualizate", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(AccountSettingsActivity.this, "Interests updated successfully", Toast.LENGTH_SHORT).show();
                                 interestsDialog.dismiss();
                             }
 
@@ -263,7 +282,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
                             public void onError(String errorMessage) {
                                 btnSaveInterests.setEnabled(true);
                                 Toast.makeText(AccountSettingsActivity.this,
-                                        "Eroare: " + errorMessage, Toast.LENGTH_LONG).show();
+                                        "Error: " + errorMessage, Toast.LENGTH_LONG).show();
                             }
                         });
             });
@@ -283,7 +302,6 @@ public class AccountSettingsActivity extends AppCompatActivity {
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
     }
 
-    /** Incarca profilul userului logat curent din Firestore si populeaza ecranul. */
     private void loadCurrentUserProfile() {
         authRepository.getCurrentUserProfile(new AuthRepository.AuthCallback() {
             @Override
@@ -291,12 +309,26 @@ public class AccountSettingsActivity extends AppCompatActivity {
                 currentUser = user;
                 txtUserName.setText(user.getName());
                 txtUserEmail.setText(user.getEmail());
+
+                TextView txtAvatar = findViewById(R.id.txtAvatar);
+                if (txtAvatar != null && user.getAvatarInitials() != null) {
+                    txtAvatar.setText(user.getAvatarInitials());
+                }
+
+                TextView txtCompletedTripsCount = findViewById(R.id.txtCompletedTripsCount);
+                TextView txtSavedTripsCount = findViewById(R.id.txtSavedTripsCount);
+                if (txtCompletedTripsCount != null) {
+                    txtCompletedTripsCount.setText(String.valueOf(user.getCompletedTripsCount()));
+                }
+                if (txtSavedTripsCount != null) {
+                    txtSavedTripsCount.setText(String.valueOf(user.getSavedTripsCount()));
+                }
             }
 
             @Override
             public void onError(String errorMessage) {
                 Toast.makeText(AccountSettingsActivity.this,
-                        "Nu am putut incarca profilul: " + errorMessage, Toast.LENGTH_LONG).show();
+                        "Couldn't load profile: " + errorMessage, Toast.LENGTH_LONG).show();
             }
         });
     }

@@ -73,6 +73,21 @@ public class TripRepository {
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
+    /**
+     * Actualizeaza un trip existent (folosit cand editezi un draft deja salvat,
+     * in loc sa creezi un document nou - evita duplicatele).
+     */
+    public void updateSavedTrip(String uid, String tripId, Trip trip, TripCallback callback) {
+        firestore.collection("users").document(uid)
+                .collection("savedTrips").document(tripId)
+                .set(trip)
+                .addOnSuccessListener(unused -> {
+                    trip.setTripId(tripId);
+                    callback.onSuccess(trip);
+                })
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
     /** Citeste toate savedTrips ale userului, cele mai noi primele. */
     public void getSavedTrips(String uid, TripListCallback callback) {
         firestore.collection("users").document(uid)
@@ -156,6 +171,39 @@ public class TripRepository {
                 callback.onError(errorMessage);
             }
         });
+    }
+
+    /** Sterge un trip din savedTrips (folosit la "Delete" pe un draft) si decrementeaza contorul. */
+    public void deleteSavedTrip(String uid, String tripId, SimpleCallback callback) {
+        firestore.collection("users").document(uid)
+                .collection("savedTrips").document(tripId)
+                .delete()
+                .addOnSuccessListener(unused -> {
+                    firestore.collection("users").document(uid)
+                            .update("savedTripsCount", FieldValue.increment(-1));
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    /**
+     * Transforma un draft in "planned" (il "adopti" ca destinatie ferma).
+     * Daca startDate/endDate sunt null (draft flexibil), le poti trimite acum
+     * ca sa porneasca countdown-ul; daca deja are date, trimite null si ramane cum era.
+     */
+    public void promoteDraftToPlanned(String uid, String tripId, String startDate, String endDate,
+                                      int daysCount, SimpleCallback callback) {
+        java.util.Map<String, Object> updates = new java.util.HashMap<>();
+        updates.put("status", "planned");
+        if (startDate != null) updates.put("startDate", startDate);
+        if (endDate != null) updates.put("endDate", endDate);
+        if (startDate != null) updates.put("daysCount", daysCount);
+
+        firestore.collection("users").document(uid)
+                .collection("savedTrips").document(tripId)
+                .update(updates)
+                .addOnSuccessListener(unused -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
     /**

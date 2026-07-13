@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -37,7 +38,7 @@
         <activity
             android:name=".SignUpActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize"></activity>
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".PlanTripActivity"
             android:exported="false" />
@@ -59,6 +60,14 @@
         <activity android:name=".RecommendedActivity" />
         <activity
             android:name=".AllItemsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".AIHubActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".AIChatActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
     </application>

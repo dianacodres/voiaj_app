@@ -66,8 +66,9 @@ public class SearchActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
+                // Tradus în engleză
                 Toast.makeText(SearchActivity.this,
-                        "Nu am putut incarca orasele: " + errorMessage, Toast.LENGTH_LONG).show();
+                        "Could not load cities: " + errorMessage, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -81,16 +82,15 @@ public class SearchActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
+                // Tradus în engleză
                 Toast.makeText(SearchActivity.this,
-                        "Nu am putut incarca orasele: " + errorMessage, Toast.LENGTH_LONG).show();
+                        "Could not load cities: " + errorMessage, Toast.LENGTH_LONG).show();
             }
         });
     }
 
     /**
-     * Afiseaza orasele gasite pentru un mood, grupate alfabetic pe tara -
-     * exact acelasi stil ca la "Change" din PlanTripActivity, dar fara bara de cautare
-     * (aici lista e deja filtrata dupa mood, nu mai are sens sa cauti in plus).
+     * Displays the cities found for a mood, grouped alphabetically by country.
      */
     private void showMoodBottomSheet(String title, List<City> cities) {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.BottomSheetStyle);

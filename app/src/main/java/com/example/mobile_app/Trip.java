@@ -78,7 +78,24 @@ public class Trip {
         try {
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
             Date start = sdf.parse(startDate);
-            long diffMillis = start.getTime() - System.currentTimeMillis();
+
+            // Normalizam ambele date la miezul noptii, ca diferenta sa fie in zile
+            // calendaristice intregi, nu in ore brute (evita sa arate "0 days" cu cateva
+            // ore inainte de miezul noptii zilei premergatoare plecarii).
+            java.util.Calendar startCal = java.util.Calendar.getInstance();
+            startCal.setTime(start);
+            startCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+            startCal.set(java.util.Calendar.MINUTE, 0);
+            startCal.set(java.util.Calendar.SECOND, 0);
+            startCal.set(java.util.Calendar.MILLISECOND, 0);
+
+            java.util.Calendar todayCal = java.util.Calendar.getInstance();
+            todayCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+            todayCal.set(java.util.Calendar.MINUTE, 0);
+            todayCal.set(java.util.Calendar.SECOND, 0);
+            todayCal.set(java.util.Calendar.MILLISECOND, 0);
+
+            long diffMillis = startCal.getTimeInMillis() - todayCal.getTimeInMillis();
             int days = (int) (diffMillis / (1000 * 60 * 60 * 24));
             this.daysUntilTrip = Math.max(days, 0);
             this.countdownActive = days >= 0;

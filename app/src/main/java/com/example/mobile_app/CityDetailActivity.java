@@ -2,6 +2,8 @@ package com.example.mobile_app;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
@@ -12,18 +14,31 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class CityDetailActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
 
     private TextView txtCityName, txtCountryLabel, txtCityRating, txtCityTagline;
     private TextView txtCurrency, txtLanguage, txtAvgDay;
+    private TextView txtGenerateItineraryTitle, txtGenerateItinerarySub;
 
-
-    private TextView txtGenerateItineraryTitle,txtGenerateItinerarySub;
+    // --- LINII NOI: Componentele pentru API-ul de vreme ---
+    private TextView txtTemp, txtWeatherCondition;
 
     private String currentCityId;
     private String currentCountryId;
+
+    // Pune aici cheia ta de la OpenWeatherMap
+    private final String WEATHER_API_KEY = "PUNE_AICI_CHEIA_TA_API_OPENWEATHER";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +54,7 @@ public class CityDetailActivity extends AppCompatActivity {
         if (currentCityId == null) currentCityId = "rome";
         if (currentCountryId == null) currentCountryId = "italy";
 
-        // Legăm elementele vechi
+        // Legăm elementele din UI
         txtCityName = findViewById(R.id.txtCityName);
         txtCountryLabel = findViewById(R.id.txtCountryLabel);
         txtCityRating = findViewById(R.id.txtCityRating);
@@ -48,9 +63,12 @@ public class CityDetailActivity extends AppCompatActivity {
         txtLanguage = findViewById(R.id.txtLanguage);
         txtAvgDay = findViewById(R.id.txtAvgDay);
 
-        // --- LINII NOI: Inițializăm elementele din cardul AI ---
         txtGenerateItineraryTitle = findViewById(R.id.txtGenerateItineraryTitle);
         txtGenerateItinerarySub = findViewById(R.id.txtGenerateItinerarySub);
+
+        // --- LINII NOI: Legăm TextView-urile pentru vreme ---
+        txtTemp = findViewById(R.id.txtTemp);
+        txtWeatherCondition = findViewById(R.id.txtWeatherCondition);
 
         ViewCompat.setOnApplyWindowInsetsListener(
                 findViewById(R.id.cityDetailRoot), (v, insets) -> {
@@ -97,15 +115,20 @@ public class CityDetailActivity extends AppCompatActivity {
                             if (city.getName() != null && txtCityName != null) {
                                 txtCityName.setText(city.getName());
 
-                                // --- LINIE NOUĂ: Actualizăm titlul cardului AI în mod dinamic! ---
                                 if (txtGenerateItineraryTitle != null) {
                                     txtGenerateItineraryTitle.setText("Generate a " + city.getName() + " itinerary");
                                 }
 
-                                // ADAUGĂ ACEASTĂ LINIE: Acum variabila va fi folosită și va deveni mov!
                                 if (txtGenerateItinerarySub != null) {
                                     txtGenerateItinerarySub.setText("Let the AI build your perfect days in " + city.getName());
                                 }
+
+
+                                // Se ia numele din Firestore și se pune prima literă mare, restul mici (ex: "rome" -> "Rome")
+                                String formattedName = city.getName().substring(0, 1).toUpperCase() + city.getName().substring(1).toLowerCase();
+
+                                // Trimitem numele curățat și formatat către API-ul OpenWeatherMap
+                                fetchWeatherData(formattedName);
                             }
 
                             if (city.getCountryId() != null && txtCountryLabel != null) {
@@ -135,8 +158,60 @@ public class CityDetailActivity extends AppCompatActivity {
                             }
                         }
                     } else {
-                        Toast.makeText(this, "Eroare la încărcarea datelor orașului", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Error loading city data", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+    // --- METODĂ NOUĂ: Executarea cererii API pe un thread asincron (background thread) ---
+    private void fetchWeatherData(String cityName) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        executor.execute(() -> {
+            try {
+                // Generăm URL-ul cu parametrii de unități metrice (Celsius)
+                String urlString = "https://api.openweathermap.org/data/2.5/weather?q=" + cityName + "&appid=" + WEATHER_API_KEY + "&units=metric";
+                URL url = new URL(urlString);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String inputLine;
+
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    in.close();
+
+                    // Parsăm răspunsul JSON primit de la server
+                    JSONObject jsonResponse = new JSONObject(response.toString());
+                    JSONObject mainObject = jsonResponse.getJSONObject("main");
+                    int temperature = (int) Math.round(mainObject.getDouble("temp"));
+
+                    String weatherDescription = jsonResponse.getJSONArray("weather")
+                            .getJSONObject(0).getString("main");
+
+                    // Trimitem datele înapoi pe thread-ul principal (UI Thread)
+                    handler.post(() -> {
+                        if (txtTemp != null) {
+                            txtTemp.setText(temperature + "°");
+                        }
+                        if (txtWeatherCondition != null) {
+                            txtWeatherCondition.setText(weatherDescription);
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                handler.post(() -> {
+                    if (txtWeatherCondition != null) {
+                        txtWeatherCondition.setText("Offline");
+                    }
+                });
+            }
+        });
     }
 }

@@ -55,6 +55,7 @@ public class PlanTripActivity extends AppCompatActivity {
 
     private TripRepository tripRepository;
     private String currentUid;
+    private String editingTripId; // daca nu e null, editam un draft existent, nu cream unul nou
 
     // Selectiile de atractii/restaurante pentru trip-ul curent (ID-uri)
     private final Set<String> selectedAttractionIds = new HashSet<>();
@@ -197,6 +198,36 @@ public class PlanTripActivity extends AppCompatActivity {
             });
         }
 
+        // Daca venim de la un tap pe un draft existent (JourneyActivity), preincarcam datele lui
+        editingTripId = getIntent().getStringExtra("editingTripId");
+        boolean forceExactDates = getIntent().getBooleanExtra("forceExactDates", false);
+        if (editingTripId != null) {
+            String existingStartDate = getIntent().getStringExtra("existingStartDate");
+            String existingEndDate = getIntent().getStringExtra("existingEndDate");
+            int existingDaysCount = getIntent().getIntExtra("existingDaysCount", currentDays);
+
+            if (existingStartDate != null && existingEndDate != null) {
+                switchToExactDates();
+                try {
+                    SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                    departureDate = isoFormat.parse(existingStartDate).getTime();
+                    returnDate = isoFormat.parse(existingEndDate).getTime();
+                    selectingDeparture = true;
+                    showDateResult();
+                    CalendarView calendarViewRef = findViewById(R.id.calendarView);
+                    if (calendarViewRef != null) calendarViewRef.setDate(departureDate, false, true);
+                } catch (Exception ignored) {
+                }
+            } else if (forceExactDates) {
+                // Draft flexibil, dar butonul "Plan this trip" cere direct calendarul,
+                // nu popup-uri native - trecem pe Exact dates, fara nicio data preselectata.
+                switchToExactDates();
+                currentDays = existingDaysCount;
+            } else {
+                currentDays = existingDaysCount;
+            }
+        }
+
         updateDaysDisplay();
 
         MaterialButton btnPlanWithAI = findViewById(R.id.btnPlanWithAI);
@@ -226,7 +257,7 @@ public class PlanTripActivity extends AppCompatActivity {
      */
     private void saveTrip(String status) {
         if (currentUid == null) {
-            Toast.makeText(this, "Trebuie sa fii autentificat pentru a salva un trip.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "You need to be logged in to save a trip.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -241,7 +272,7 @@ public class PlanTripActivity extends AppCompatActivity {
             daysCount = (int) ((returnDate - departureDate) / (1000 * 60 * 60 * 24));
         } else if (!isFlexibleMode) {
             // Exact dates e activ dar nu s-au ales inca ambele date
-            Toast.makeText(this, "Selecteaza data de plecare si de intoarcere.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Select your departure and return dates.", Toast.LENGTH_SHORT).show();
             return;
         }
         // In modul Flexible, startDate/endDate raman null (ca la "Lisbon 5-day idea" din Wishlist),
@@ -259,10 +290,10 @@ public class PlanTripActivity extends AppCompatActivity {
         }
         trip.setItinerary(itinerary);
 
-        tripRepository.addSavedTrip(currentUid, trip, new TripRepository.TripCallback() {
+        TripRepository.TripCallback callback = new TripRepository.TripCallback() {
             @Override
             public void onSuccess(Trip savedTrip) {
-                String message = "planned".equals(status) ? "Calatorie planificata!" : "Salvat ca draft";
+                String message = "planned".equals(status) ? "Trip planned!" : "Saved as draft";
                 Toast.makeText(PlanTripActivity.this, message, Toast.LENGTH_SHORT).show();
                 finish();
             }
@@ -270,9 +301,16 @@ public class PlanTripActivity extends AppCompatActivity {
             @Override
             public void onError(String errorMessage) {
                 Toast.makeText(PlanTripActivity.this,
-                        "Nu am putut salva: " + errorMessage, Toast.LENGTH_LONG).show();
+                        "Couldn't save: " + errorMessage, Toast.LENGTH_LONG).show();
             }
-        });
+        };
+
+        if (editingTripId != null) {
+            // Editam un draft existent - actualizam documentul, nu cream unul nou (fara duplicate)
+            tripRepository.updateSavedTrip(currentUid, editingTripId, trip, callback);
+        } else {
+            tripRepository.addSavedTrip(currentUid, trip, callback);
+        }
     }
 
     private String capitalize(String text) {
@@ -297,7 +335,7 @@ public class PlanTripActivity extends AppCompatActivity {
             @Override
             public void onError(String errorMessage) {
                 Toast.makeText(PlanTripActivity.this,
-                        "Nu am putut incarca atractiile: " + errorMessage, Toast.LENGTH_LONG).show();
+                        "Couldn't load attractions: " + errorMessage, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -319,7 +357,7 @@ public class PlanTripActivity extends AppCompatActivity {
             @Override
             public void onError(String errorMessage) {
                 Toast.makeText(PlanTripActivity.this,
-                        "Nu am putut incarca restaurantele: " + errorMessage, Toast.LENGTH_LONG).show();
+                        "Couldn't load restaurants: " + errorMessage, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -399,7 +437,7 @@ public class PlanTripActivity extends AppCompatActivity {
             @Override
             public void onError(String errorMessage) {
                 Toast.makeText(PlanTripActivity.this,
-                        "Nu am putut incarca orasele: " + errorMessage, Toast.LENGTH_LONG).show();
+                        "Couldn't load cities: " + errorMessage, Toast.LENGTH_LONG).show();
             }
         });
     }

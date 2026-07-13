@@ -63,7 +63,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="12dp"
-            android:text="Andrei Pop"
+            android:text="Andrei Popescu"
             android:textColor="@color/navy_blue_1"
             android:textSize="25sp"
             android:textStyle="bold"
@@ -81,7 +81,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:layout_marginTop="2dp"
-            android:text="andrei.pop@email.com"
+            android:text="andrei.popescu@email.com"
             android:textColor="@color/navy_blue_1"
             android:textSize="15sp"
             android:maxLines="1"
@@ -142,6 +142,7 @@
                 android:layout_marginEnd="6dp">
 
                 <TextView
+                    android:id="@+id/txtCompletedTripsCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="8"
@@ -170,6 +171,7 @@
                 android:layout_marginStart="6dp">
 
                 <TextView
+                    android:id="@+id/txtSavedTripsCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="14"
