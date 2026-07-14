@@ -426,7 +426,7 @@
             android:gravity="center"
             android:orientation="vertical">
             <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_discover" app:tint="#AAAAAA" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Discover" android:textColor="#AAAAAA" android:textSize="10sp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="@string/nav_discover" android:textColor="#AAAAAA" android:textSize="10sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -436,7 +436,7 @@
             android:gravity="center"
             android:orientation="vertical">
             <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_map" app:tint="#AAAAAA" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Map" android:textColor="#AAAAAA" android:textSize="10sp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="@string/nav_map" android:textColor="#AAAAAA" android:textSize="10sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -454,7 +454,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Wishlist"
+                android:text="@string/nav_wishlist"
                 android:textColor="#AAAAAA"
                 android:textSize="10sp" />
         </LinearLayout>
@@ -474,7 +474,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="AI"
+                android:text="@string/nav_ai"
                 android:textColor="@color/light_turq_1"
                 android:textSize="10sp"
                 android:textStyle="bold" />

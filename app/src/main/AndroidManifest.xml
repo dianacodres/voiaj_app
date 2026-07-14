@@ -3,6 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="replace" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -12,20 +19,29 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Mobile_app">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".LoginActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".AccountSettingsActivity"
+            android:exported="false" />
+
         <activity
             android:name=".DiscoverActivity"
             android:exported="false" />
@@ -36,14 +52,7 @@
             android:name=".SummaryActivity"
             android:exported="false" />
         <activity
-            android:name=".SignUpActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
             android:name=".PlanTripActivity"
-            android:exported="false" />
-        <activity
-            android:name=".AccountSettingsActivity"
             android:exported="false" />
         <activity
             android:name=".CityDetailActivity"
@@ -57,7 +66,10 @@
         <activity
             android:name=".JourneyActivity"
             android:exported="false" />
-        <activity android:name=".RecommendedActivity" />
+
+        <activity
+            android:name=".RecommendedActivity"
+            android:exported="false" />
         <activity
             android:name=".AllItemsActivity"
             android:exported="false"
@@ -70,6 +82,7 @@
             android:name=".AIChatActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
     </application>
 
 </manifest>

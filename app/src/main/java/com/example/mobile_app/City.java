@@ -11,15 +11,29 @@ public class City {
     private String tagline;
     private List<String> keywords;
 
-    // CÂMPURILE NOI PENTRU CARDUL DE DETALII:
     private String currency;
     private String language;
-    private Long avgDayBudget; // Folosim Long sau Double în funcție de cum e salvat numărul în Firestore
+    private Long avgDayBudget;
 
+    // CÂMPURILE NOI PENTRU COORDONATE ȘI IMAGINE DIN FIRESTORE:
+    private Double lat;
+    private Double lon;
+    private String imageUrl;
+    private String description;
+
+    // Constructorul gol obligatoriu pentru maparea automată Firestore
     public City() {
     }
 
-    // Getter-ii și Setter-ii tăi existenți rămân neschimbați...
+    // Constructor complet utilizat pentru inițializări rapide în cod
+    public City(String id, String name, Double lat, Double lon) {
+        this.id = id;
+        this.name = name;
+        this.lat = lat;
+        this.lon = lon;
+    }
+
+    // Getter-ii și Setter-ii existenți:
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getName() { return name; }
@@ -33,11 +47,20 @@ public class City {
     public List<String> getKeywords() { return keywords; }
     public void setKeywords(List<String> keywords) { this.keywords = keywords; }
 
-    // GETTERI ȘI SETTERI PENTRU CÂMPURILE NOI:
     public String getCurrency() { return currency; }
     public void setCurrency(String currency) { this.currency = currency; }
     public String getLanguage() { return language; }
     public void setLanguage(String language) { this.language = language; }
     public Long getAvgDayBudget() { return avgDayBudget; }
     public void setAvgDayBudget(Long avgDayBudget) { this.avgDayBudget = avgDayBudget; }
+
+    // GETTERI ȘI SETTERI PENTRU CÂMPURILE NOI:
+    public Double getLat() { return lat; }
+    public void setLat(Double lat) { this.lat = lat; }
+    public Double getLon() { return lon; }
+    public void setLon(Double lon) { this.lon = lon; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 }

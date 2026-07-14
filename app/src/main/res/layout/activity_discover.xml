@@ -559,7 +559,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Discover"
+                android:text="@string/nav_discover"
                 android:textColor="@color/light_turq_1"
                 android:textSize="10sp" />
 
@@ -582,7 +582,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Map"
+                android:text="@string/nav_map"
                 android:textColor="#AAAAAA"
                 android:textSize="10sp" />
 
@@ -605,7 +605,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Wishlist"
+                android:text="@string/nav_wishlist"
                 android:textColor="#AAAAAA"
                 android:textSize="10sp" />
 
@@ -629,7 +629,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="AI"
+                android:text="@string/nav_ai"
                 android:textColor="#AAAAAA"
                 android:textSize="10sp" />
 

@@ -12,6 +12,41 @@
     <string name="congrats">Felicitări!</string>
     <string name="selection_ready">Selecția ta este gata.</string>
     <string name="summary_text">%1$s\nAi ales %2$d interese.</string>
-
     <string name="default_web_client_id">784752648883-lnl2kvo6p9g7qnl8dk7j4bubd7i72hpb.apps.googleusercontent.com</string>
+
+    <string name="explore_europe">Explore Europe</string>
+    <string name="calculating_route">Calculare instructiuni traseu...</string>
+    <string name="all_days_dropdown">All Days ▾</string>
+    <string name="btn_plus">+</string>
+    <string name="btn_minus">-</string>
+    <string name="btn_start">START</string>
+    <string name="label_italy">ITALY</string>
+    <string name="city_rome">Rome</string>
+    <string name="rome_description">The Eternal City · 3000 yrs of history</string>
+    <string name="btn_details">Details ➔</string>
+
+    <string name="filter_museums">Museums</string>
+    <string name="filter_restaurants">Restaurants</string>
+    <string name="filter_nature">Nature</string>
+    <string name="filter_cafes">Cafes</string>
+    <string name="filter_historical">Historical</string>
+
+    <string name="filter_europe">Europe</string>
+    <string name="filter_western_europe">Western Europe</string>
+    <string name="filter_central_europe">Central Europe</string>
+    <string name="filter_eastern_europe">Eastern Europe</string>
+    <string name="filter_northern_europe">Northern Europe</string>
+    <string name="filter_southern_europe">Southern Europe</string>
+    <string name="filter_mediterranean">Mediterranean</string>
+
+    <string name="rating_rome">⭐ 4.8</string>
+    <string name="country_italy">Italy</string>
+    <string name="rating_vienna">⭐ 4.7</string>
+    <string name="city_vienna">Vienna</string>
+    <string name="country_austria">Austria</string>
+
+    <string name="nav_discover">Discover</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_wishlist">Journeys</string>
+    <string name="nav_ai">Assistant</string>
 </resources>

@@ -5,6 +5,7 @@ plugins {
 
 android {
     namespace 'com.example.mobile_app'
+
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -13,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.mobile_app"
-        minSdk 27
+        minSdk 27  // Păstrăm 27 (este compatibil și cu minSdk 26 al hărții)
         targetSdk 36
         versionCode 1
         versionName "1.0"
@@ -23,12 +24,16 @@ android {
 
     buildTypes {
         release {
+            minifyEnabled false // Poți schimba pe true mai târziu dacă folosești ProGuard
             optimization {
                 enable false
             }
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
+        // Aliniem tot proiectul (inclusiv codul hărții transferat) pe Java 11
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
@@ -38,16 +43,23 @@ dependencies {
     implementation libs.activity.ktx
     implementation libs.appcompat
     implementation libs.constraintlayout
-    implementation libs.firebase.firestore
     implementation libs.material
-    testImplementation libs.junit
-    androidTestImplementation libs.espresso.core
-    androidTestImplementation libs.ext.junit
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
 
+    // autentificare Google Play
+    implementation 'com.google.android.gms:play-services-auth:21.2.0'
+
+    // Firebase si BOM
     implementation platform('com.google.firebase:firebase-bom:33.5.1')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
-    implementation 'com.google.android.gms:play-services-auth:21.2.0'
-    implementation 'androidx.recyclerview:recyclerview:1.3.2'
 
+    // OpenStreetMap
+    implementation 'org.osmdroid:osmdroid-android:6.1.18'
+    //implementation 'com.github.MKergall:osmbonuspack:6.9.0'
+
+    // testare
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
 }
