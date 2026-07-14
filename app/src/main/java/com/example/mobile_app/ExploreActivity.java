@@ -712,4 +712,16 @@ public class ExploreActivity extends AppCompatActivity implements SensorEventLis
             sensorManager.unregisterListener(this);
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1001) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                initUserLocationMarker();
+            } else {
+                Toast.makeText(this, "Location permission denied - can't show your position on the map.", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
 }

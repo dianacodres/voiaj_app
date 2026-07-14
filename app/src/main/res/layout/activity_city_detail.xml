@@ -171,17 +171,10 @@
                                 android:orientation="horizontal"
                                 android:gravity="center_vertical">
 
-                                <ImageView
-                                    android:layout_width="20dp"
-                                    android:layout_height="20dp"
-                                    android:src="@drawable/ic_search"
-                                    app:tint="@color/white" />
-
                                 <TextView
                                     android:id="@+id/txtTemp"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginStart="6dp"
                                     android:text="18°"
                                     android:textColor="@color/white"
                                     android:textSize="22sp"
@@ -190,24 +183,16 @@
 
                             </LinearLayout>
 
-                            <!-- Conditie meteo -->
+                            <!-- Conditie meteo (include acum emoji-ul, adaugat din cod) -->
                             <TextView
                                 android:id="@+id/txtWeatherCondition"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Sunny · Spring"
+                                android:layout_marginTop="2dp"
+                                android:text="☀️ Clear"
                                 android:textColor="@color/white"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
-
-                            <!-- Best season -->
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="Best season to visit"
-                                android:textColor="#CCFFFFFF"
-                                android:textSize="11sp" />
 
                         </LinearLayout>
 

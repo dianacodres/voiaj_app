@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,14 +32,13 @@ public class CityDetailActivity extends AppCompatActivity {
     private TextView txtCurrency, txtLanguage, txtAvgDay;
     private TextView txtGenerateItineraryTitle, txtGenerateItinerarySub;
 
-    // --- LINII NOI: Componentele pentru API-ul de vreme ---
     private TextView txtTemp, txtWeatherCondition;
 
     private String currentCityId;
     private String currentCountryId;
 
-    // Pune aici cheia ta de la OpenWeatherMap
-    private final String WEATHER_API_KEY = "PUNE_AICI_CHEIA_TA_API_OPENWEATHER";
+    // Cheia ta de la OpenWeatherMap
+    private final String WEATHER_API_KEY = "8b797ca0d5266ca229d83febd665dbc7";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +54,6 @@ public class CityDetailActivity extends AppCompatActivity {
         if (currentCityId == null) currentCityId = "rome";
         if (currentCountryId == null) currentCountryId = "italy";
 
-        // Legăm elementele din UI
         txtCityName = findViewById(R.id.txtCityName);
         txtCountryLabel = findViewById(R.id.txtCountryLabel);
         txtCityRating = findViewById(R.id.txtCityRating);
@@ -66,7 +65,6 @@ public class CityDetailActivity extends AppCompatActivity {
         txtGenerateItineraryTitle = findViewById(R.id.txtGenerateItineraryTitle);
         txtGenerateItinerarySub = findViewById(R.id.txtGenerateItinerarySub);
 
-        // --- LINII NOI: Legăm TextView-urile pentru vreme ---
         txtTemp = findViewById(R.id.txtTemp);
         txtWeatherCondition = findViewById(R.id.txtWeatherCondition);
 
@@ -122,13 +120,6 @@ public class CityDetailActivity extends AppCompatActivity {
                                 if (txtGenerateItinerarySub != null) {
                                     txtGenerateItinerarySub.setText("Let the AI build your perfect days in " + city.getName());
                                 }
-
-
-                                // Se ia numele din Firestore și se pune prima literă mare, restul mici (ex: "rome" -> "Rome")
-                                String formattedName = city.getName().substring(0, 1).toUpperCase() + city.getName().substring(1).toLowerCase();
-
-                                // Trimitem numele curățat și formatat către API-ul OpenWeatherMap
-                                fetchWeatherData(formattedName);
                             }
 
                             if (city.getCountryId() != null && txtCountryLabel != null) {
@@ -156,21 +147,53 @@ public class CityDetailActivity extends AppCompatActivity {
                             if (city.getAvgDayBudget() != null && txtAvgDay != null) {
                                 txtAvgDay.setText("~€" + city.getAvgDayBudget());
                             }
+
+                            // Vremea se cere pe baza de LATITUDINE/LONGITUDINE, nu nume de oras -
+                            // functioneaza corect indiferent de cate tari/orase adaugi in viitor,
+                            // fara sa mai fie nevoie de nicio lista de coduri de tara intretinuta manual.
+                            if (city.getLat() != null && city.getLon() != null) {
+                                fetchWeatherData(city.getLat(), city.getLon());
+                            } else if (txtWeatherCondition != null) {
+                                txtWeatherCondition.setText("No location data");
+                            }
                         }
                     } else {
                         Toast.makeText(this, "Error loading city data", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
-    // --- METODĂ NOUĂ: Executarea cererii API pe un thread asincron (background thread) ---
-    private void fetchWeatherData(String cityName) {
+
+    /** Emoji corespunzator conditiei meteo principale returnate de OpenWeatherMap. */
+    private String getWeatherEmoji(String condition) {
+        if (condition == null) return "🌤️";
+        switch (condition) {
+            case "Clear": return "☀️";
+            case "Clouds": return "☁️";
+            case "Rain":
+            case "Drizzle": return "🌧️";
+            case "Thunderstorm": return "⛈️";
+            case "Snow": return "❄️";
+            case "Mist":
+            case "Fog":
+            case "Haze": return "🌫️";
+            default: return "🌤️";
+        }
+    }
+
+    /**
+     * Cere vremea pe baza de coordonate exacte (lat/lon), nu nume de oras -
+     * elimina complet orice ambiguitate (ex: Rome/Italia vs Rome/Georgia SUA),
+     * indiferent cate tari noi adaugi in Firestore.
+     */
+    private void fetchWeatherData(double lat, double lon) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
 
         executor.execute(() -> {
             try {
-                // Generăm URL-ul cu parametrii de unități metrice (Celsius)
-                String urlString = "https://api.openweathermap.org/data/2.5/weather?q=" + cityName + "&appid=" + WEATHER_API_KEY + "&units=metric";
+                String urlString = String.format(Locale.US,
+                        "https://api.openweathermap.org/data/2.5/weather?lat=%f&lon=%f&appid=%s&units=metric",
+                        lat, lon, WEATHER_API_KEY);
                 URL url = new URL(urlString);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
@@ -186,21 +209,20 @@ public class CityDetailActivity extends AppCompatActivity {
                     }
                     in.close();
 
-                    // Parsăm răspunsul JSON primit de la server
                     JSONObject jsonResponse = new JSONObject(response.toString());
                     JSONObject mainObject = jsonResponse.getJSONObject("main");
                     int temperature = (int) Math.round(mainObject.getDouble("temp"));
 
                     String weatherDescription = jsonResponse.getJSONArray("weather")
                             .getJSONObject(0).getString("main");
+                    String emoji = getWeatherEmoji(weatherDescription);
 
-                    // Trimitem datele înapoi pe thread-ul principal (UI Thread)
                     handler.post(() -> {
                         if (txtTemp != null) {
                             txtTemp.setText(temperature + "°");
                         }
                         if (txtWeatherCondition != null) {
-                            txtWeatherCondition.setText(weatherDescription);
+                            txtWeatherCondition.setText(emoji + " " + weatherDescription);
                         }
                     });
                 }
