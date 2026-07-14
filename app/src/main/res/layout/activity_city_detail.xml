@@ -19,7 +19,6 @@
             android:layout_height="match_parent"
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
-            <!-- Imagine oras -->
             <ImageView
                 android:id="@+id/imgCity"
                 android:layout_width="match_parent"
@@ -28,13 +27,11 @@
                 android:src="@drawable/rome"
                 app:layout_collapseMode="parallax" />
 
-            <!-- Overlay gradient jos -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/bg_city_overlay" />
 
-            <!-- Info oras peste imagine -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -44,7 +41,6 @@
                 android:paddingBottom="16dp"
                 app:layout_collapseMode="parallax">
 
-                <!-- ITALY label -->
                 <TextView
                     android:id="@+id/txtCountryLabel"
                     android:layout_width="wrap_content"
@@ -55,7 +51,6 @@
                     android:textStyle="bold"
                     android:letterSpacing="0.15" />
 
-                <!-- Rome -->
                 <TextView
                     android:id="@+id/txtCityName"
                     android:layout_width="wrap_content"
@@ -66,7 +61,6 @@
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-black" />
 
-                <!-- Rating + tagline -->
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -95,14 +89,12 @@
 
             </LinearLayout>
 
-            <!-- Toolbar cu butoane -->
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin">
 
-                <!-- Buton inapoi -->
                 <ImageView
                     android:id="@+id/btnBack"
                     android:layout_width="36dp"
@@ -119,7 +111,6 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Continut scrollabil -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -131,7 +122,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Card vreme + info practice -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -145,7 +135,6 @@
                     android:layout_height="wrap_content"
                     android:padding="16dp">
 
-                    <!-- Stanga: vreme -->
                     <androidx.cardview.widget.CardView
                         android:id="@+id/cardWeather"
                         android:layout_width="0dp"
@@ -164,7 +153,6 @@
                             android:orientation="vertical"
                             android:padding="12dp">
 
-                            <!-- Temperatura -->
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -183,7 +171,6 @@
 
                             </LinearLayout>
 
-                            <!-- Conditie meteo (include acum emoji-ul, adaugat din cod) -->
                             <TextView
                                 android:id="@+id/txtWeatherCondition"
                                 android:layout_width="wrap_content"
@@ -198,7 +185,6 @@
 
                     </androidx.cardview.widget.CardView>
 
-                    <!-- Divider vertical -->
                     <View
                         android:id="@+id/dividerV"
                         android:layout_width="1dp"
@@ -210,7 +196,6 @@
                         app:layout_constraintStart_toEndOf="@id/cardWeather"
                         app:layout_constraintEnd_toStartOf="@id/layoutInfo" />
 
-                    <!-- Dreapta: Currency, Language, Avg/day -->
                     <LinearLayout
                         android:id="@+id/layoutInfo"
                         android:layout_width="0dp"
@@ -221,7 +206,6 @@
                         app:layout_constraintStart_toEndOf="@id/dividerV"
                         app:layout_constraintEnd_toEndOf="parent">
 
-                        <!-- Currency -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -247,7 +231,6 @@
 
                         </LinearLayout>
 
-                        <!-- Language -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -273,7 +256,6 @@
 
                         </LinearLayout>
 
-                        <!-- Avg/day -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -372,6 +354,7 @@
                         app:layout_constraintEnd_toStartOf="@id/btnTicket1">
 
                         <TextView
+                            android:id="@+id/txtAttraction1Name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Colosseum"
@@ -381,6 +364,7 @@
                             android:fontFamily="sans-serif-black" />
 
                         <TextView
+                            android:id="@+id/txtAttraction1Subtitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
@@ -440,6 +424,7 @@
                         app:layout_constraintEnd_toStartOf="@id/btnTicket2">
 
                         <TextView
+                            android:id="@+id/txtAttraction2Name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Vatican Museums"
@@ -449,6 +434,7 @@
                             android:fontFamily="sans-serif-black" />
 
                         <TextView
+                            android:id="@+id/txtAttraction2Subtitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
@@ -604,6 +590,7 @@
                         app:layout_constraintEnd_toStartOf="@id/priceRoscioli">
 
                         <TextView
+                            android:id="@+id/txtRestaurant1Name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Roscioli"
@@ -613,6 +600,7 @@
                             android:fontFamily="sans-serif-black" />
 
                         <TextView
+                            android:id="@+id/txtRestaurant1Subtitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
@@ -674,6 +662,7 @@
                         app:layout_constraintEnd_toStartOf="@id/priceDaEnzo">
 
                         <TextView
+                            android:id="@+id/txtRestaurant2Name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Da Enzo al 29"
@@ -683,6 +672,7 @@
                             android:fontFamily="sans-serif-black" />
 
                         <TextView
+                            android:id="@+id/txtRestaurant2Subtitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
@@ -728,7 +718,6 @@
         android:orientation="horizontal"
         android:padding="16dp">
 
-        <!-- Plan trip buton beige - ACUM PE MIJLOC MARE -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPlanTrip"
             android:layout_width="match_parent"

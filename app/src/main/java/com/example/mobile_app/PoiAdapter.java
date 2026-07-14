@@ -1,5 +1,7 @@
 package com.example.mobile_app;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,9 +25,9 @@ public class PoiAdapter extends RecyclerView.Adapter<PoiAdapter.VH> {
     private final List<PoiRow> items;
     private final Set<String> selectedIds;
     private final OnSelectionChanged listener;
-    private final boolean isSelectionMode; // Variabilă pentru a ști dacă afișăm sau nu cercul de bifat
+    private final boolean isSelectionMode; // Variabila pentru a sti daca afisam sau nu cercul de bifat
 
-    // Constructorul tău original (rămâne intact pentru ecranele de selecție)
+    // Constructorul tau original (ramane intact pentru ecranele de selectie)
     public PoiAdapter(List<PoiRow> items, Set<String> selectedIds, OnSelectionChanged listener) {
         this.items = items;
         this.selectedIds = selectedIds;
@@ -33,7 +35,7 @@ public class PoiAdapter extends RecyclerView.Adapter<PoiAdapter.VH> {
         this.isSelectionMode = true;
     }
 
-    // Constructor NOU: special pentru ecranul „View All” (fără selecție)
+    // Constructor pentru ecranul „View All" (fara selectie)
     public PoiAdapter(List<PoiRow> items) {
         this.items = items;
         this.selectedIds = Collections.emptySet();
@@ -63,12 +65,28 @@ public class PoiAdapter extends RecyclerView.Adapter<PoiAdapter.VH> {
         if (imageResId == 0) imageResId = R.drawable.rome;
         holder.img.setImageResource(imageResId);
 
-        // Dacă nu suntem în modul de selecție, ascundem complet cercul din dreapta
         if (!isSelectionMode) {
+            // "View all" - ascundem cerculetul de bifare si aratam in schimb iconita de bilet/info
             holder.circle.setVisibility(View.GONE);
             holder.checkIcon.setVisibility(View.GONE);
+
+            if (item.url != null && !item.url.isEmpty()) {
+                holder.linkBtn.setVisibility(View.VISIBLE);
+                holder.linkBtn.setImageResource(item.isTicket ? R.drawable.ic_ticket : R.drawable.ic_info);
+                holder.linkBtn.setOnClickListener(v -> {
+                    try {
+                        v.getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(item.url)));
+                    } catch (Exception ignored) {
+                    }
+                });
+            } else {
+                holder.linkBtn.setVisibility(View.GONE);
+                holder.linkBtn.setOnClickListener(null);
+            }
         } else {
+            // Mod selectie (Plan a Trip) - ramane exact cum era, fara iconita de link
             holder.circle.setVisibility(View.VISIBLE);
+            holder.linkBtn.setVisibility(View.GONE);
             boolean isSelected = selectedIds.contains(item.id);
             updateCircleState(holder, isSelected);
 
@@ -100,7 +118,7 @@ public class PoiAdapter extends RecyclerView.Adapter<PoiAdapter.VH> {
     }
 
     static class VH extends RecyclerView.ViewHolder {
-        ImageView img, checkIcon;
+        ImageView img, checkIcon, linkBtn;
         TextView name, subtitle;
         FrameLayout circle;
 
@@ -111,6 +129,7 @@ public class PoiAdapter extends RecyclerView.Adapter<PoiAdapter.VH> {
             subtitle = itemView.findViewById(R.id.txtPoiSubtitle);
             circle = itemView.findViewById(R.id.circleSelect);
             checkIcon = itemView.findViewById(R.id.imgCheck);
+            linkBtn = itemView.findViewById(R.id.btnPoiLink);
         }
     }
 }

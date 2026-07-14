@@ -1,9 +1,11 @@
 package com.example.mobile_app;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
@@ -20,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,6 +80,8 @@ public class CityDetailActivity extends AppCompatActivity {
                 });
 
         loadCityDetails();
+        loadTopAttractions();
+        loadTopRestaurants();
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
@@ -148,9 +153,6 @@ public class CityDetailActivity extends AppCompatActivity {
                                 txtAvgDay.setText("~€" + city.getAvgDayBudget());
                             }
 
-                            // Vremea se cere pe baza de LATITUDINE/LONGITUDINE, nu nume de oras -
-                            // functioneaza corect indiferent de cate tari/orase adaugi in viitor,
-                            // fara sa mai fie nevoie de nicio lista de coduri de tara intretinuta manual.
                             if (city.getLat() != null && city.getLon() != null) {
                                 fetchWeatherData(city.getLat(), city.getLon());
                             } else if (txtWeatherCondition != null) {
@@ -161,6 +163,104 @@ public class CityDetailActivity extends AppCompatActivity {
                         Toast.makeText(this, "Error loading city data", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    /** Incarca primele 2 atractii si le pune in cardurile Colosseum/Vatican Museums. */
+    private void loadTopAttractions() {
+        PoiRepository poiRepository = new PoiRepository();
+        poiRepository.getAttractions(currentCountryId, currentCityId, new PoiRepository.AttractionListCallback() {
+            @Override
+            public void onSuccess(List<Attraction> attractions) {
+                ImageView img1 = findViewById(R.id.imgColosseum);
+                TextView name1 = findViewById(R.id.txtAttraction1Name);
+                TextView sub1 = findViewById(R.id.txtAttraction1Subtitle);
+                ImageView btn1 = findViewById(R.id.btnTicket1);
+
+                ImageView img2 = findViewById(R.id.imgVatican);
+                TextView name2 = findViewById(R.id.txtAttraction2Name);
+                TextView sub2 = findViewById(R.id.txtAttraction2Subtitle);
+                ImageView btn2 = findViewById(R.id.btnTicket2);
+
+                if (attractions.size() > 0) bindAttraction(attractions.get(0), img1, name1, sub1, btn1);
+                if (attractions.size() > 1) bindAttraction(attractions.get(1), img2, name2, sub2, btn2);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(CityDetailActivity.this,
+                        "Couldn't load attractions: " + errorMessage, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /** Incarca primele 2 restaurante si le pune in cardurile Roscioli/Da Enzo. */
+    private void loadTopRestaurants() {
+        PoiRepository poiRepository = new PoiRepository();
+        poiRepository.getRestaurants(currentCountryId, currentCityId, new PoiRepository.RestaurantListCallback() {
+            @Override
+            public void onSuccess(List<Restaurant> restaurants) {
+                ImageView img1 = findViewById(R.id.imgRoscioli);
+                TextView name1 = findViewById(R.id.txtRestaurant1Name);
+                TextView sub1 = findViewById(R.id.txtRestaurant1Subtitle);
+                TextView price1 = findViewById(R.id.priceRoscioli);
+
+                ImageView img2 = findViewById(R.id.imgDaEnzo);
+                TextView name2 = findViewById(R.id.txtRestaurant2Name);
+                TextView sub2 = findViewById(R.id.txtRestaurant2Subtitle);
+                TextView price2 = findViewById(R.id.priceDaEnzo);
+
+                if (restaurants.size() > 0) bindRestaurant(restaurants.get(0), img1, name1, sub1, price1);
+                if (restaurants.size() > 1) bindRestaurant(restaurants.get(1), img2, name2, sub2, price2);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(CityDetailActivity.this,
+                        "Couldn't load restaurants: " + errorMessage, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /** Pune datele reale ale unei atractii pe card, si leaga iconita de bilet/info la link. */
+    private void bindAttraction(Attraction a, ImageView img, TextView name, TextView subtitle, ImageView ticketBtn) {
+        if (name != null) name.setText(a.getName());
+        if (subtitle != null) subtitle.setText(PoiRow.fromAttraction(a).subtitle);
+        if (img != null) {
+            int resId = 0;
+            if (a.getId() != null) resId = getResources().getIdentifier(a.getId(), "drawable", getPackageName());
+            img.setImageResource(resId != 0 ? resId : R.drawable.rome);
+        }
+
+        // DOAR iconita de bilet deschide link-ul, nu tot cardul
+        if (ticketBtn != null) {
+            if (a.getTicketUrl() != null && !a.getTicketUrl().isEmpty()) {
+                ticketBtn.setImageResource(R.drawable.ic_ticket);
+                ticketBtn.setOnClickListener(v -> openLink(a.getTicketUrl()));
+            } else if (a.getInfoUrl() != null && !a.getInfoUrl().isEmpty()) {
+                ticketBtn.setImageResource(R.drawable.ic_info);
+                ticketBtn.setOnClickListener(v -> openLink(a.getInfoUrl()));
+            } else {
+                ticketBtn.setOnClickListener(null);
+            }
+        }
+    }
+
+    private void bindRestaurant(Restaurant r, ImageView img, TextView name, TextView subtitle, TextView price) {
+        if (name != null) name.setText(r.getName());
+        if (subtitle != null) subtitle.setText(PoiRow.fromRestaurant(r).subtitle);
+        if (price != null) price.setText(r.getPriceRange() != null ? r.getPriceRange() : "");
+        if (img != null) {
+            int resId = 0;
+            if (r.getId() != null) resId = getResources().getIdentifier(r.getId(), "drawable", getPackageName());
+            img.setImageResource(resId != 0 ? resId : R.drawable.rome);
+        }
+    }
+
+    private void openLink(String url) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (Exception ignored) {
+        }
     }
 
     /** Emoji corespunzator conditiei meteo principale returnate de OpenWeatherMap. */
@@ -182,8 +282,7 @@ public class CityDetailActivity extends AppCompatActivity {
 
     /**
      * Cere vremea pe baza de coordonate exacte (lat/lon), nu nume de oras -
-     * elimina complet orice ambiguitate (ex: Rome/Italia vs Rome/Georgia SUA),
-     * indiferent cate tari noi adaugi in Firestore.
+     * elimina complet orice ambiguitate, indiferent cate tari noi adaugi in Firestore.
      */
     private void fetchWeatherData(double lat, double lon) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
