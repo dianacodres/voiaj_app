@@ -17,6 +17,9 @@ public class Attraction {
     private String ticketUrl; // optional - nu toate atractiile au link de bilete
     private String infoUrl;   // pentru cele gratuite - link informativ oficial, nu de bilete
     private java.util.List<String> tags;
+    private Double lat;
+    private Double lon;
+    private String indoorOutdoor; // "indoor" / "outdoor" / "both"
 
     public Attraction() {
     }
@@ -136,5 +139,29 @@ public class Attraction {
 
     public void setTags(java.util.List<String> tags) {
         this.tags = tags;
+    }
+
+    public Double getLat() {
+        return lat;
+    }
+
+    public void setLat(Double lat) {
+        this.lat = lat;
+    }
+
+    public Double getLon() {
+        return lon;
+    }
+
+    public void setLon(Double lon) {
+        this.lon = lon;
+    }
+
+    public String getIndoorOutdoor() {
+        return indoorOutdoor;
+    }
+
+    public void setIndoorOutdoor(String indoorOutdoor) {
+        this.indoorOutdoor = indoorOutdoor;
     }
 }

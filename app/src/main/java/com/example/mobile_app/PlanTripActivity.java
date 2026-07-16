@@ -1,5 +1,6 @@
 package com.example.mobile_app;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -228,13 +229,22 @@ public class PlanTripActivity extends AppCompatActivity {
             }
         }
 
+        // Daca am detectat o luna mentionata in chat (ex: "trip in August"), navigam
+        // calendarul direct acolo, ca userul sa nu mai trebuiasca sa dea scroll manual.
+        long targetDateMillis = getIntent().getLongExtra("targetDateMillis", -1);
+        if (targetDateMillis != -1) {
+            if (isFlexibleMode) switchToExactDates();
+            CalendarView calendarViewTarget = findViewById(R.id.calendarView);
+            if (calendarViewTarget != null) calendarViewTarget.setDate(targetDateMillis, false, true);
+        }
+
         updateDaysDisplay();
 
         MaterialButton btnPlanWithAI = findViewById(R.id.btnPlanWithAI);
         TextView txtSaveAsDraft = findViewById(R.id.txtSaveAsDraft);
 
         if (btnPlanWithAI != null) {
-            btnPlanWithAI.setOnClickListener(v -> saveTrip("planned"));
+            btnPlanWithAI.setOnClickListener(v -> genereazaSiSalveazaCuAI());
         }
         if (txtSaveAsDraft != null) {
             txtSaveAsDraft.setOnClickListener(v -> saveTrip("draft"));
@@ -251,9 +261,65 @@ public class PlanTripActivity extends AppCompatActivity {
     }
 
     /**
-     * Salveaza trip-ul curent in savedTrips, cu status "planned" (buton Plan with AI)
-     * sau "draft" (Save as draft). Generarea efectiva a itinerariului cu AI e o
-     * feature separata, nu implementata aici - deocamdata doar salvam intentia de calatorie.
+     * Ruleaza ItineraryGenerator (zone, routeOrder, mealTime etc.) si salveaza rezultatul
+     * ca trip "planned". Spre deosebire de "Save as draft", aici itinerariul e generat cu
+     * adevarat pe zile, nu doar o lista bruta pusa toata pe ziua 1.
+     */
+    private void genereazaSiSalveazaCuAI() {
+        if (currentUid == null) {
+            Toast.makeText(this, "You need to be logged in to save a trip.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        String startDate, endDate;
+        int daysCount;
+
+        if (!isFlexibleMode && departureDate != -1 && returnDate != -1) {
+            SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            startDate = isoFormat.format(new Date(departureDate));
+            endDate = isoFormat.format(new Date(returnDate));
+            daysCount = (int) ((returnDate - departureDate) / (1000 * 60 * 60 * 24));
+        } else {
+            Toast.makeText(this, "Select your departure and return dates.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(this, "Generating your itinerary...", Toast.LENGTH_SHORT).show();
+
+        int finalDaysCount = daysCount;
+        String finalStartDate = startDate;
+        String finalEndDate = endDate;
+
+        ItineraryGenerator.genereaza(countryId, cityId, daysCount, selectedAttractionIds, selectedRestaurantIds,
+                new ItineraryGenerator.ItineraryCallback() {
+                    @Override
+                    public void onSuccess(List<ItineraryItem> itinerariu) {
+                        // NU salvam inca - trimitem doar spre chat, ca preview. Se salveaza
+                        // efectiv doar cand userul apasa butonul "Save" de pe card.
+                        Intent intent = new Intent(PlanTripActivity.this, AIChatActivity.class);
+                        intent.putExtra("previewCityId", cityId);
+                        intent.putExtra("previewCityName", cityName);
+                        intent.putExtra("previewCountryId", countryId);
+                        intent.putExtra("previewStartDate", finalStartDate);
+                        intent.putExtra("previewEndDate", finalEndDate);
+                        intent.putExtra("previewDaysCount", finalDaysCount);
+                        if (editingTripId != null) intent.putExtra("previewEditingTripId", editingTripId);
+                        intent.putExtra("previewItinerary", new java.util.ArrayList<>(itinerariu));
+                        startActivity(intent);
+                        finish();
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        Toast.makeText(PlanTripActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    /**
+     * Salveaza trip-ul curent in savedTrips, cu status "draft" - fara generare AI,
+     * doar selectiile manuale (daca exista), toate pe ziua 1. "Plan with AI" (butonul
+     * principal) foloseste in schimb genereazaSiSalveazaCuAI(), cu itinerariul generat real.
      */
     private void saveTrip(String status) {
         if (currentUid == null) {

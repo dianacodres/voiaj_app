@@ -15,17 +15,18 @@ public class City {
     private String language;
     private Long avgDayBudget;
 
-    // CÂMPURILE NOI PENTRU COORDONATE ȘI IMAGINE DIN FIRESTORE:
     private Double lat;
     private Double lon;
     private String imageUrl;
     private String description;
 
-    // Constructorul gol obligatoriu pentru maparea automată Firestore
+    // Expresii scurte si specifice, DOAR pentru cautarea semantica AI (recomandari de destinatie) -
+    // separat de "keywords", care raman legate de cele 6 categorii fixe de la onboarding.
+    private List<String> semanticTags;
+
     public City() {
     }
 
-    // Constructor complet utilizat pentru inițializări rapide în cod
     public City(String id, String name, Double lat, Double lon) {
         this.id = id;
         this.name = name;
@@ -33,7 +34,6 @@ public class City {
         this.lon = lon;
     }
 
-    // Getter-ii și Setter-ii existenți:
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getName() { return name; }
@@ -54,7 +54,6 @@ public class City {
     public Long getAvgDayBudget() { return avgDayBudget; }
     public void setAvgDayBudget(Long avgDayBudget) { this.avgDayBudget = avgDayBudget; }
 
-    // GETTERI ȘI SETTERI PENTRU CÂMPURILE NOI:
     public Double getLat() { return lat; }
     public void setLat(Double lat) { this.lat = lat; }
     public Double getLon() { return lon; }
@@ -63,4 +62,7 @@ public class City {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public List<String> getSemanticTags() { return semanticTags; }
+    public void setSemanticTags(List<String> semanticTags) { this.semanticTags = semanticTags; }
 }

@@ -16,6 +16,8 @@ public class Restaurant {
     private int mealOrder;
     private java.util.List<String> bestFor;
     private String address;
+    private Double lat;
+    private Double lon;
 
     public Restaurant() {
     }
@@ -122,5 +124,21 @@ public class Restaurant {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public Double getLat() {
+        return lat;
+    }
+
+    public void setLat(Double lat) {
+        this.lat = lat;
+    }
+
+    public Double getLon() {
+        return lon;
+    }
+
+    public void setLon(Double lon) {
+        this.lon = lon;
     }
 }

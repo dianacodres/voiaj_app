@@ -1,11 +1,14 @@
 package com.example.mobile_app;
 
+import java.io.Serializable;
+
 /**
  * O intrare din itinerariul unui trip: un loc (atractie sau restaurant) + ziua
  * in care e planuit sa fie vizitat. Stocat ca array de obiecte pe Trip.itinerary
  * in Firestore (users/{uid}/savedTrips/{tripId}/itinerary).
+ * Serializable - ca sa poata fi trimis prin Intent (preview inainte de salvare).
  */
-public class ItineraryItem {
+public class ItineraryItem implements Serializable {
 
     private String poiId;
     private String type; // "attraction" sau "restaurant"

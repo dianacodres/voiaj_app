@@ -228,4 +228,43 @@ public class TripRepository {
                         .addOnFailureListener(e -> callback.onError(e.getMessage())))
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
+
+    // ── Istoric de conversatii AI - DOAR pentru itinerarii salvate, nu vreme/buget ──
+
+    public interface ChatHistoryCallback {
+        void onSuccess(java.util.List<java.util.Map<String, Object>> intrari);
+        void onError(String errorMessage);
+    }
+
+    /** Salveaza o intrare in istoric, la momentul in care un itinerariu generat de AI e efectiv salvat. */
+    public void logChatHistoryEntry(String uid, String cityName, String tripId, int daysCount, SimpleCallback callback) {
+        java.util.Map<String, Object> intrare = new java.util.HashMap<>();
+        intrare.put("cityName", cityName);
+        intrare.put("tripId", tripId);
+        intrare.put("daysCount", daysCount);
+        intrare.put("createdAt", FieldValue.serverTimestamp());
+
+        firestore.collection("users").document(uid)
+                .collection("chatHistory")
+                .add(intrare)
+                .addOnSuccessListener(docRef -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    /** Ia ultimele N intrari din istoric, cele mai noi primele - folosit la "Recent" in AI Hub. */
+    public void getRecentChatHistory(String uid, int limit, ChatHistoryCallback callback) {
+        firestore.collection("users").document(uid)
+                .collection("chatHistory")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .limit(limit)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    java.util.List<java.util.Map<String, Object>> intrari = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        intrari.add(doc.getData());
+                    }
+                    callback.onSuccess(intrari);
+                })
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
 }

@@ -103,10 +103,10 @@
                 android:id="@+id/btnNewConversation"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="+  New conversation"
+                android:text="💬  Ask anything"
                 android:textAllCaps="false"
                 android:textColor="@color/navy_blue_1"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 app:backgroundTint="@color/beige"
                 app:cornerRadius="14dp" />
@@ -288,16 +288,16 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="💬"
+                            android:text="📍"
                             android:textSize="22sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
-                            android:text="Ask anything"
+                            android:text="Recommend city"
                             android:textColor="@color/navy_blue_1"
-                            android:textSize="14sp"
+                            android:textSize="13sp"
                             android:textStyle="bold"
                             android:fontFamily="sans-serif-black" />
 
@@ -305,7 +305,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Travel questions"
+                            android:text="Where to go"
                             android:textColor="#999999"
                             android:textSize="11sp" />
 
