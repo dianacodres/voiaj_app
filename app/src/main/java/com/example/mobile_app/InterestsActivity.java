@@ -13,7 +13,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.button.MaterialButton;
 
@@ -32,14 +36,13 @@ public class InterestsActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView tvStepCount;
     private MaterialButton btnContinue;
+    private FrameLayout loadingOverlay; // Adăugat pentru ecranul de loading unificat
 
     private final List<InterestCard> cards = new ArrayList<>();
     private final Set<String> selectedKeys = new HashSet<>();
 
     private static final String RESOURCE_PREFIX = "interests_";
 
-    // Date primite de la SignUpActivity (mode implicit = signup cu email)
-    // sau de la LoginActivity, dupa prima logare cu Google (mode = "google_new")
     private AuthRepository authRepository;
     private String pendingMode;
     private String pendingUid;
@@ -64,10 +67,20 @@ public class InterestsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_interests);
 
+        if (findViewById(R.id.main) != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                return insets;
+            });
+        }
+
         authRepository = new AuthRepository();
-        pendingMode = getIntent().getStringExtra("mode"); // null sau "signup" => email; "google_new" => Google
+        pendingMode = getIntent().getStringExtra("mode");
         pendingUid = getIntent().getStringExtra("uid");
         pendingName = getIntent().getStringExtra("name");
         pendingEmail = getIntent().getStringExtra("email");
@@ -75,19 +88,30 @@ public class InterestsActivity extends AppCompatActivity {
 
         progressBar = findViewById(R.id.progressBar);
         tvStepCount = findViewById(R.id.tvStepCount);
+
+        // Identificare overlay loading din XML (asigură-te că ai un FrameLayout cu acest ID ascuns în XML)
+        loadingOverlay = findViewById(R.id.loadingOverlay);
+
+        try {
+            tvStepCount.setText(R.string.step_two_of_two);
+        } catch (Exception e) {
+            tvStepCount.setText("2/2");
+        }
+
         btnContinue = findViewById(R.id.btnContinue);
 
         findViewById(R.id.btnBack).setOnClickListener(v -> {
-            Intent intent = new Intent(InterestsActivity.this, SignUpActivity.class);
-            startActivity(intent);
+            ObjectAnimator animator = ObjectAnimator.ofInt(progressBar, "progress", progressBar.getProgress(), 50);
+            animator.setDuration(200);
+            animator.start();
+            progressBar.postDelayed(this::finish, 200);
         });
-
 
         CardConfig[] configs = {
                 new CardConfig(R.id.cardBeaches, "beaches", "Beaches", "prelogin_img_1"),
                 new CardConfig(R.id.cardFood, "food", "Food", "prelogin_img_2"),
-                new CardConfig(R.id.cardCities, "cities", "Cities", "prelogin_img_3"),
-                new CardConfig(R.id.cardMountains, "mountains", "Mountains", "prelogin_img_4"),
+                new CardConfig(R.id.cardCities, "historical", "Historical", "prelogin_img_3"),
+                new CardConfig(R.id.cardMountains, "urbanism", "Urbanism", "prelogin_img_4"),
                 new CardConfig(R.id.cardCulture, "culture", "Culture", "prelogin_img_5"),
                 new CardConfig(R.id.cardNature, "nature", "Nature", "prelogin_img_6")
         };
@@ -100,7 +124,11 @@ public class InterestsActivity extends AppCompatActivity {
 
         btnContinue.setOnClickListener(v -> {
             if (selectedKeys.size() < MIN_REQUIRED) {
-                Toast.makeText(this, R.string.min_select_error, Toast.LENGTH_SHORT).show();
+                try {
+                    Toast.makeText(this, R.string.min_select_error, Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(this, "Te rugăm să selectezi minimum 2 interese.", Toast.LENGTH_SHORT).show();
+                }
                 return;
             }
 
@@ -111,16 +139,17 @@ public class InterestsActivity extends AppCompatActivity {
 
     private void setupCard(int includeRootId, String key, String label, String drawableName) {
         View root = findViewById(includeRootId);
+        if (root == null) return;
 
         ImageView ivImage = root.findViewById(R.id.ivImage);
         TextView tvLabel = root.findViewById(R.id.tvLabel);
         FrameLayout badgeBg = root.findViewById(R.id.badgeBg);
         ImageView badgeIcon = root.findViewById(R.id.badgeIcon);
 
-        tvLabel.setText(label);
-        loadImageSafely(ivImage, drawableName, label);
+        if (tvLabel != null) tvLabel.setText(label);
+        if (ivImage != null) loadImageSafely(ivImage, drawableName, label);
 
-        badgeIcon.setImageResource(R.drawable.interests_ic_plus);
+        if (badgeIcon != null) badgeIcon.setImageResource(R.drawable.interests_ic_plus);
 
         InterestCard card = new InterestCard(key, root, badgeBg, badgeIcon);
         cards.add(card);
@@ -141,30 +170,28 @@ public class InterestsActivity extends AppCompatActivity {
                 if (colorResId != 0) {
                     imageView.setImageResource(colorResId);
                 } else {
-                    throw new Exception("No graphic resource or universal fallback found.");
+                    imageView.setImageResource(android.R.color.darker_gray);
                 }
             }
         } catch (Exception e) {
-            Toast.makeText(
-                    this,
-                    getString(R.string.img_missing_error, label, drawableName),
-                    Toast.LENGTH_LONG
-            ).show();
+            imageView.setImageResource(android.R.color.darker_gray);
         }
     }
 
     private void toggleCard(InterestCard card) {
-        if (card == null) return;
+        if (card == null || card.root == null) return;
         boolean nowSelected = !card.root.isSelected();
 
         card.root.setSelected(nowSelected);
-        card.badgeBg.setSelected(nowSelected);
+        if (card.badgeBg != null) card.badgeBg.setSelected(nowSelected);
 
-        float targetRotation = nowSelected ? 45f : 0f;
-        card.badgeIcon.animate()
-                .rotation(targetRotation)
-                .setDuration(100)
-                .start();
+        if (card.badgeIcon != null) {
+            float targetRotation = nowSelected ? 45f : 0f;
+            card.badgeIcon.animate()
+                    .rotation(targetRotation)
+                    .setDuration(100)
+                    .start();
+        }
 
         if (nowSelected) {
             selectedKeys.add(card.key);
@@ -199,15 +226,21 @@ public class InterestsActivity extends AppCompatActivity {
         ObjectAnimator animator = ObjectAnimator.ofInt(progressBar, "progress", progressBar.getProgress(), 100);
         animator.setDuration(350);
         animator.start();
-        tvStepCount.setText(R.string.step_two_of_two);
+
+        try {
+            tvStepCount.setText(R.string.step_two_of_two);
+        } catch (Exception e) {
+            tvStepCount.setText("2/2");
+        }
+
+        // Afișăm loadingscreen-ul chiar de aici din onboarding pentru continuitate
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.VISIBLE);
+        }
 
         progressBar.postDelayed(this::createFirebaseAccount, 400);
     }
 
-    /**
-     * Creeaza efectiv contul in Firebase Auth + documentul users/{uid} in Firestore,
-     * cu interesele selectate. Abia dupa succes navigheaza catre DiscoverActivity.
-     */
     private void createFirebaseAccount() {
         List<String> interests = new ArrayList<>(selectedKeys);
 
@@ -218,11 +251,10 @@ public class InterestsActivity extends AppCompatActivity {
         }
     }
 
-    /** Flux signup cu email (SignUpActivity -> aici). */
     private void createEmailAccount(List<String> interests) {
         if (pendingName == null || pendingEmail == null || pendingPassword == null) {
             Toast.makeText(this, "Missing data from the previous step. Please restart signup.", Toast.LENGTH_LONG).show();
-            btnContinue.setEnabled(true);
+            hideLoadingOverlay();
             return;
         }
 
@@ -240,11 +272,10 @@ public class InterestsActivity extends AppCompatActivity {
                 });
     }
 
-    /** Flux prima logare cu Google (LoginActivity -> aici, cont Auth deja creat). */
     private void createGoogleAccount(List<String> interests) {
         if (pendingUid == null || pendingEmail == null) {
             Toast.makeText(this, "Missing data from the previous step. Please restart sign-in.", Toast.LENGTH_LONG).show();
-            btnContinue.setEnabled(true);
+            hideLoadingOverlay();
             return;
         }
 
@@ -263,19 +294,30 @@ public class InterestsActivity extends AppCompatActivity {
             }
         });
     }
-
     private void goToDiscover() {
         Intent intent = new Intent(InterestsActivity.this, DiscoverActivity.class);
         intent.putExtra("selected_count", selectedKeys.size());
+        intent.putExtra("IS_UNIFIED_SIGNUP_LOADING", true);
+
+        // ── BLOCARE TOTALĂ ANIMAȚIE NATIVĂ DE TRANZIȚIE ──
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+
         startActivity(intent);
-        finish();
+        overridePendingTransition(0, 0);
     }
 
     private void showCreationError(String message) {
         Toast.makeText(InterestsActivity.this, message, Toast.LENGTH_LONG).show();
-        btnContinue.setEnabled(true);
+        hideLoadingOverlay();
         progressBar.setProgress(50);
         tvStepCount.setText("2/2");
+    }
+
+    private void hideLoadingOverlay() {
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.GONE);
+        }
+        btnContinue.setEnabled(true);
     }
 
     private static class InterestCard {
@@ -289,6 +331,15 @@ public class InterestsActivity extends AppCompatActivity {
             this.root = root;
             this.badgeBg = badgeBg;
             this.badgeIcon = badgeIcon;
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (loadingOverlay != null && loadingOverlay.getVisibility() == View.VISIBLE) {
+            finish();
         }
     }
 }

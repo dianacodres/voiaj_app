@@ -10,6 +10,67 @@
     tools:context=".ExploreActivity"
     tools:ignore="SpellCheckingInspection">
 
+    <!-- ── HEADER NOU: oraș + selector zile + buton X (înlocuiește panelNavigation vechi de sus) ── -->
+    <LinearLayout
+        android:id="@+id/routeHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_header_gradient"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="12dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txtRouteCityName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="Roma" />
+
+            <TextView
+                android:id="@+id/btnCloseRoute"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_chip_selected"
+                android:backgroundTint="#33FFFFFF"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="✕"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/dayTabsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <!-- ── Panou instrucțiuni navigare, vizibil doar după Start, sub header ── -->
     <androidx.cardview.widget.CardView
         android:id="@+id/panelNavigation"
         android:layout_width="match_parent"
@@ -19,7 +80,7 @@
         app:cardBackgroundColor="#FFFFFF"
         app:cardCornerRadius="14dp"
         app:cardElevation="6dp"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/routeHeader"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -53,46 +114,87 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <!-- ── Card pop-up pin: nume, tip, poză, add/delete traseu, auto-close 3s ── -->
         <androidx.cardview.widget.CardView
-            android:id="@+id/cardAllDaysDropdown"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            app:cardBackgroundColor="#FFFFFF"
-            app:cardCornerRadius="18dp"
-            app:cardElevation="6dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-            <TextView
-                android:id="@+id/btnAllDaysDropdown"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:paddingHorizontal="14dp"
-                android:text="@string/all_days_dropdown"
-                android:textColor="#011C40"
-                android:textStyle="bold"
-                android:textSize="12sp"
-                android:clickable="true"
-                android:focusable="true" />
-        </androidx.cardview.widget.CardView>
-
-        <TextView
-            android:id="@+id/txtFocusedCity"
-            android:layout_width="wrap_content"
+            android:id="@+id/cardPinPopup"
+            android:layout_width="260dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="#B3011C40"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="6dp"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:textStyle="bold"
             android:visibility="gone"
-            app:layout_constraintTop_toBottomOf="@id/cardAllDaysDropdown"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="8dp"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.35">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp">
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/imgPinFrame"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    app:cardCornerRadius="12dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+                    <ImageView
+                        android:id="@+id/imgPinPhoto"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        tools:src="@drawable/rome" />
+                </androidx.cardview.widget.CardView>
+
+                <TextView
+                    android:id="@+id/txtPinType"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:textColor="#E67E22"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.05"
+                    tools:text="MUSEUM"
+                    app:layout_constraintStart_toEndOf="@id/imgPinFrame"
+                    app:layout_constraintTop_toTopOf="@id/imgPinFrame"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <TextView
+                    android:id="@+id/txtPinName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/navy_blue_1"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    tools:text="Colosseum"
+                    app:layout_constraintStart_toStartOf="@id/txtPinType"
+                    app:layout_constraintTop_toBottomOf="@id/txtPinType"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPinRouteAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:layout_marginTop="6dp"
+                    android:textAllCaps="false"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    app:backgroundTint="@color/blue"
+                    app:cornerRadius="8dp"
+                    tools:text="Add"
+                    app:layout_constraintStart_toStartOf="@id/txtPinName"
+                    app:layout_constraintTop_toBottomOf="@id/txtPinName" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
 
         <LinearLayout
             android:id="@+id/zoomControls"
@@ -268,6 +370,7 @@
         </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- ── Panou jos: chips categorii + transport + distanță/timp total + până la următoarea atracție ── -->
     <LinearLayout
         android:id="@+id/bottomLayoutInside"
         android:layout_width="match_parent"
@@ -284,57 +387,87 @@
             android:id="@+id/filterChipGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
+            android:weightSum="6"
+            android:paddingHorizontal="8dp"
+            android:layout_marginBottom="10dp">
+            <TextView android:id="@+id/chipMuseum" android:layout_width="0dp" android:layout_height="32dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#819CB8" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_museums" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
+            <TextView android:id="@+id/chipRestaurant" android:layout_width="0dp" android:layout_height="32dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#D3B6D3" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_restaurants" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
+            <TextView android:id="@+id/chipNature" android:layout_width="0dp" android:layout_height="32dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#8FB880" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_nature" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
+            <TextView android:id="@+id/chipCafe" android:layout_width="0dp" android:layout_height="32dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#C4B28E" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_cafes" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
+            <TextView android:id="@+id/chipHistorical" android:layout_width="0dp" android:layout_height="32dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#52A5CE" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_historical" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
+            <TextView android:id="@+id/chipMonument" android:layout_width="0dp" android:layout_height="32dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#F4BEAE" android:gravity="center" android:paddingHorizontal="1dp" android:text="Monuments" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:orientation="horizontal"
             android:paddingHorizontal="8dp"
             android:layout_marginBottom="8dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="32dp"
-                android:orientation="horizontal"
-                android:weightSum="6"
-                android:layout_marginBottom="10dp">
-                <TextView android:id="@+id/chipMuseum" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#819CB8" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_museums" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
-                <TextView android:id="@+id/chipRestaurant" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#D3B6D3" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_restaurants" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
-                <TextView android:id="@+id/chipNature" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#8FB880" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_nature" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
-                <TextView android:id="@+id/chipCafe" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#C4B28E" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_cafes" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
-                <TextView android:id="@+id/chipHistorical" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#52A5CE" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_historical" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
-                <TextView android:id="@+id/chipMonument" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#F4BEAE" android:gravity="center" android:paddingHorizontal="1dp" android:text="Monuments" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
-            </LinearLayout>
+            <TextView
+                android:id="@+id/btnTransportCar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_chip_selected"
+                android:backgroundTint="@color/blue"
+                android:gravity="center"
+                android:text="🚗 Car"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:tag="car" />
 
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="36dp"
-                android:scrollbars="none"
-                android:clipToPadding="false"
-                android:overScrollMode="never">
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:paddingEnd="16dp"
-                    android:gravity="center_vertical">
-                    <TextView android:id="@+id/filterAll" android:layout_width="wrap_content" android:layout_height="32dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="@color/blue" android:gravity="center" android:paddingHorizontal="14dp" android:text="@string/filter_europe" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="11sp" android:tag="all"/>
-                    <TextView android:id="@+id/filterWesternEurope" android:layout_width="wrap_content" android:layout_height="32dp" android:layout_marginStart="8dp" android:background="@drawable/bg_chip" android:backgroundTint="#F5F5F5" android:gravity="center" android:paddingHorizontal="14dp" android:text="@string/filter_western_europe" android:textColor="#011C40" android:textSize="11sp" android:tag="western"/>
-                    <TextView android:id="@+id/filterCentralEurope" android:layout_width="wrap_content" android:layout_height="32dp" android:layout_marginStart="8dp" android:background="@drawable/bg_chip" android:backgroundTint="#F5F5F5" android:gravity="center" android:paddingHorizontal="14dp" android:text="@string/filter_central_europe" android:textColor="#011C40" android:textSize="11sp" android:tag="central"/>
-                    <TextView android:id="@+id/filterEasternEurope" android:layout_width="wrap_content" android:layout_height="32dp" android:layout_marginStart="8dp" android:background="@drawable/bg_chip" android:backgroundTint="#F5F5F5" android:gravity="center" android:paddingHorizontal="14dp" android:text="@string/filter_eastern_europe" android:textColor="#011C40" android:textSize="11sp" android:tag="eastern"/>
-                    <TextView android:id="@+id/filterNorthernEurope" android:layout_width="wrap_content" android:layout_height="32dp" android:layout_marginStart="8dp" android:background="@drawable/bg_chip" android:backgroundTint="#F5F5F5" android:gravity="center" android:paddingHorizontal="14dp" android:text="@string/filter_northern_europe" android:textColor="#011C40" android:textSize="11sp" android:tag="northern"/>
-                    <TextView android:id="@+id/filterSouthernEurope" android:layout_width="wrap_content" android:layout_height="32dp" android:layout_marginStart="8dp" android:background="@drawable/bg_chip" android:backgroundTint="#F5F5F5" android:gravity="center" android:paddingHorizontal="14dp" android:text="@string/filter_southern_europe" android:textColor="#011C40" android:textSize="11sp" android:tag="southern"/>
-                    <TextView android:id="@+id/filterMediterranean" android:layout_width="wrap_content" android:layout_height="32dp" android:layout_marginStart="8dp" android:background="@drawable/bg_chip" android:backgroundTint="#F5F5F5" android:gravity="center" android:paddingHorizontal="14dp" android:text="@string/filter_mediterranean" android:textColor="#011C40" android:textSize="11sp" android:tag="mediterranean"/>
-                </LinearLayout>
-            </HorizontalScrollView>
+            <TextView
+                android:id="@+id/btnTransportWalk"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:background="@drawable/bg_chip"
+                android:backgroundTint="#F5F5F5"
+                android:gravity="center"
+                android:text="🚶 Walk"
+                android:textColor="#011C40"
+                android:textSize="12sp"
+                android:tag="walk" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/txtTotalRouteSummary"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="4dp"
-            android:textColor="#011C40"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                android:id="@+id/txtTotalRouteSummary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#011C40"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="42.3 km · 1h 05m total"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/txtNextStopInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textColor="#26658C"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="Next: 1.2 km · 15 min"
+                tools:visibility="visible" />
+        </LinearLayout>
+
     </LinearLayout>
 
     <HorizontalScrollView

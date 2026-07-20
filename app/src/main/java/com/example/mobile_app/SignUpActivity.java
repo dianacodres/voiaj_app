@@ -12,7 +12,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import java.util.regex.Pattern;
 
@@ -25,26 +29,33 @@ public class SignUpActivity extends AppCompatActivity {
     private TextView tvStepCount;
     private Button btnContinue;
 
-    // Înlocuit din TextInputLayout/TextInputEditText în EditText simplu conform noului XML
     private EditText etName, etEmail, etPassword, etConfirm;
 
-    // Regex pentru nume: acceptă doar litere (inclusiv diacritice), spații și cratime (-)
     private static final Pattern NAME_PATTERN = Pattern.compile("^[a-zA-ZăâîșțĂÂÎȘȚ\\s-]+$");
-
-    // Regex strict pentru email corporativ/standard (asigură structură completă x@y.z)
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_sign_up);
+        AuthScreenPreference.saveLastScreen(this, AuthScreenPreference.SCREEN_LOGIN);
+
+        if (findViewById(R.id.main) != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                return insets;
+            });
+        }
 
         progressBar = findViewById(R.id.progressBar);
         tvStepCount = findViewById(R.id.tvStepCount);
         btnContinue = findViewById(R.id.btnContinue);
-
-        // Setează progresul inițial pentru pasul 1
+        progressBar = findViewById(R.id.progressBar);
         progressBar.setProgress(50);
+        tvStepCount.setText("1/2");
 
         ImageView btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> {
@@ -53,7 +64,6 @@ public class SignUpActivity extends AppCompatActivity {
             finish();
         });
 
-        // Inițializare noile componente EditText
         etName     = findViewById(R.id.etName);
         etEmail    = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
@@ -62,16 +72,13 @@ public class SignUpActivity extends AppCompatActivity {
         PasswordToggleHelper.attach(etPassword);
         PasswordToggleHelper.attach(etConfirm);
 
-        // Șterge eroarea vizuală când utilizatorul reîncepe să scrie
         addClearErrorWatcher(etName);
         addClearErrorWatcher(etEmail);
         addClearErrorWatcher(etPassword);
         addClearErrorWatcher(etConfirm);
 
-        // IMPORTANT: Un singur Listener! Validarea pornește de aici.
         btnContinue.setOnClickListener(v -> attemptContinue());
 
-        // Link „Ai deja cont?" → navighează la LoginActivity
         TextView tvSignIn = findViewById(R.id.tvSignIn);
         tvSignIn.setOnClickListener(v -> {
             startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
@@ -80,7 +87,6 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void attemptContinue() {
-        // Resetăm erorile vizuale anterioare
         etName.setError(null);
         etEmail.setError(null);
         etPassword.setError(null);
@@ -88,12 +94,11 @@ public class SignUpActivity extends AppCompatActivity {
 
         String name     = etName.getText().toString().trim();
         String email    = etEmail.getText().toString().trim();
-        String password = etPassword.getText().toString(); // Fără trim pentru parole (spațiile pot face parte din parolă)
+        String password = etPassword.getText().toString();
         String confirm  = etConfirm.getText().toString();
 
         boolean valid = true;
 
-        // 1. Validare Nume complet (doar litere, spații și cratime)
         if (name.isEmpty()) {
             etName.setError("Introduceți numele complet");
             valid = false;
@@ -102,7 +107,6 @@ public class SignUpActivity extends AppCompatActivity {
             valid = false;
         }
 
-        // 2. Validare Email cu structură fixă cunoscută
         if (email.isEmpty()) {
             etEmail.setError("Introduceți adresa de email");
             valid = false;
@@ -111,7 +115,6 @@ public class SignUpActivity extends AppCompatActivity {
             valid = false;
         }
 
-        // 3. Validare Parolă (minim 7 caractere, cel puțin o cifră sau un simbol)
         if (password.isEmpty()) {
             etPassword.setError("Introduceți parola");
             valid = false;
@@ -123,7 +126,6 @@ public class SignUpActivity extends AppCompatActivity {
             valid = false;
         }
 
-        // 4. Validare Confirmare Parolă
         if (confirm.isEmpty()) {
             etConfirm.setError("Confirmați parola");
             valid = false;
@@ -137,13 +139,9 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
 
-        // Dacă totul este valid, trecem la animație și trimitem datele mai departe
         animateToNextStep();
     }
 
-    /**
-     * Verifică dacă textul conține cel puțin o cifră sau un caracter special/simbol
-     */
     private boolean containsDigitOrSymbol(String s) {
         for (char c : s.toCharArray()) {
             if (Character.isDigit(c) || (!Character.isLetterOrDigit(c) && !Character.isWhitespace(c))) {
@@ -156,10 +154,10 @@ public class SignUpActivity extends AppCompatActivity {
     private void animateToNextStep() {
         btnContinue.setEnabled(false);
 
+        // Animația va urca fluid bara de la jumătate (50) la maxim (100) când se trece la ecranul următor
         ObjectAnimator anim = ObjectAnimator.ofInt(progressBar, "progress", 50, 100);
         anim.setDuration(350);
         anim.start();
-        tvStepCount.setText("2/2");
 
         String name = etName.getText().toString().trim();
         String email = etEmail.getText().toString().trim();
@@ -179,9 +177,21 @@ public class SignUpActivity extends AppCompatActivity {
         et.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
             public void onTextChanged(CharSequence s, int st, int b, int c) {
-                et.setError(null); // Șterge iconița de eroare în timp ce tastează
+                et.setError(null);
             }
             public void afterTextChanged(Editable s) {}
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (progressBar != null) {
+            progressBar.setProgress(50);
+        }
+        if (tvStepCount != null) {
+            tvStepCount.setText("1/2");
+        }
     }
 }

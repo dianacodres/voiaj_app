@@ -1,9 +1,11 @@
 package com.example.mobile_app;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,15 +34,37 @@ public class SearchActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_search);
 
+        // --- 1. SETARE TRANSPARENȚĂ BARĂ STATUS ---
+        Window window = getWindow();
+        window.setStatusBarColor(Color.TRANSPARENT);
+        // Forțăm pictogramele să fie albe (sau dark, depinde de background-ul din XML)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            window.getInsetsController().setSystemBarsAppearance(0, android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+        } else {
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        }
+
+        // --- 2. AJUSTARE INSETS ---
+        // În loc de padding sus, lăsăm layout-ul să urce sub bară
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.searchRoot), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // Padding doar jos pentru navigare
+            v.setPadding(0, 0, 0, systemBars.bottom);
+            return insets;
+        });
+
+        // --- 3. PADDING PENTRU HEADER (Pentru a nu suprapune textul cu ceasul) ---
+        // Dacă ai un header/container sus în activity_search.xml, aplică padding-ul acolo
+        View header = findViewById(R.id.header); // Asigură-te că ai un ID pe containerul de sus
+        if (header != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(header, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(v.getPaddingLeft(), systemBars.top, v.getPaddingRight(), v.getPaddingBottom());
+                return insets;
+            });
+        }
+
         cityRepository = new CityRepository();
-
-        ViewCompat.setOnApplyWindowInsetsListener(
-                findViewById(R.id.searchRoot), (v, insets) -> {
-                    Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    v.setPadding(0, systemBars.top, 0, systemBars.bottom);
-                    return insets;
-                });
-
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         findViewById(R.id.moodHistory).setOnClickListener(v ->
@@ -66,7 +90,6 @@ public class SearchActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                // Tradus în engleză
                 Toast.makeText(SearchActivity.this,
                         "Could not load cities: " + errorMessage, Toast.LENGTH_LONG).show();
             }
@@ -82,18 +105,14 @@ public class SearchActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                // Tradus în engleză
                 Toast.makeText(SearchActivity.this,
                         "Could not load cities: " + errorMessage, Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    /**
-     * Displays the cities found for a mood, grouped alphabetically by country.
-     */
     private void showMoodBottomSheet(String title, List<City> cities) {
-        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.BottomSheetStyle);
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
         View view = LayoutInflater.from(this)
                 .inflate(R.layout.fragment_mood_bottom_sheet, null);
 

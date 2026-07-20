@@ -1,640 +1,691 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/discoverRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg">
+    android:background="@color/bg"
+    tools:ignore="SpellCheckingInspection">
 
-
-    <!-- HEADER turcoaz -->
+    <!-- CONTAINER PRINCIPAL DE CONȚINUT: Înglobează absolut toate elementele vizibile ale ecranului.
+         Pornește INVISIBLE pentru a masca datele implicite până când Firebase termină descărcarea. -->
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/header"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_header_gradient"
-        android:paddingHorizontal="20dp"
-        android:paddingTop="56dp"
-        android:paddingBottom="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:id="@+id/mainContentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible">
 
-        <TextView
-            android:id="@+id/txtWelcomeBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:letterSpacing="0.1"
-            android:text="WELCOME BACK"
-            android:textColor="#CCFFFFFF"
-            android:textSize="11sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/txtHi"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:fontFamily="sans-serif-black"
-            android:text="Hi, Andrei 👋"
-            android:textColor="@color/white"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/txtWelcomeBack" />
-
-        <TextView
-            android:id="@+id/txtAvatar"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:background="@drawable/bg_avatar"
-            android:gravity="center"
-            android:text="AP"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@id/searchBar"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <!-- Search bar - actioneaza ca buton, NU ca input real.
-             focusable=false + focusableInTouchMode=false previn tastatura,
-             OnClickListener-ul din Java functioneaza normal la atingere. -->
-        <EditText
-            android:id="@+id/searchBar"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/header"
             android:layout_width="0dp"
-            android:layout_height="44dp"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_search_bar"
-            android:drawableStart="@drawable/ic_search"
-            android:drawablePadding="10dp"
-            android:drawableTint="@color/beige"
-            android:hint="What's your travel mood?"
-            android:inputType="none"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
-            android:cursorVisible="false"
-            android:longClickable="false"
-            android:paddingHorizontal="14dp"
-            android:textColor="@color/white"
-            android:textColorHint="#99FFFFFF"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_header_gradient"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="56dp"
+            android:paddingBottom="20dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/txtHi" />
+            app:layout_constraintTop_toTopOf="parent">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:padding="16dp"
-        app:layout_constraintBottom_toTopOf="@id/bottomNav"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:id="@+id/sectionNextTripLabel"
+            <TextView
+                android:id="@+id/txtWelcomeBack"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:letterSpacing="0.1"
+                android:text="WELCOME BACK"
+                android:textColor="#CCFFFFFF"
+                android:textSize="11sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-                <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/ic_timer"
-                    app:tint="@color/blue" />
+            <TextView
+                android:id="@+id/txtHi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="sans-serif-black"
+                android:text="Hi, Andrei 👋"
+                android:textColor="@color/white"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/txtWelcomeBack" />
 
-                <TextView
+            <TextView
+                android:id="@+id/txtAvatar"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:background="@drawable/bg_avatar"
+                android:gravity="center"
+                android:text="AP"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@id/searchBar"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <EditText
+                android:id="@+id/searchBar"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_search_bar"
+                android:drawableStart="@drawable/ic_search"
+                android:drawablePadding="10dp"
+                android:drawableTint="@color/beige"
+                android:hint="What's your travel mood?"
+                android:inputType="none"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:cursorVisible="false"
+                android:longClickable="false"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#99FFFFFF"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/txtHi" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:padding="16dp"
+            app:layout_constraintBottom_toTopOf="@id/bottomNav"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/header">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/sectionNextTripLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:fontFamily="sans-serif-medium"
-                    android:letterSpacing="0.15"
-                    android:text="YOUR NEXT TRIP"
-                    android:textColor="@color/blue"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardNextTrip"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                app:cardBackgroundColor="@color/card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="14dp">
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <ImageView
-                        android:id="@+id/imgTrip"
-                        android:layout_width="80dp"
-                        android:layout_height="80dp"
-                        android:background="@drawable/bg_card_top_rounded"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/rome"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/txtDestinationLabel"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:letterSpacing="0.1"
-                        android:text="ROME, ITALY"
-                        android:textColor="@color/light_turq_1"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/imgTrip"
-                        app:layout_constraintTop_toTopOf="@id/imgTrip" />
-
-                    <LinearLayout
-                        android:id="@+id/layoutDays"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_marginTop="4dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/imgTrip"
-                        app:layout_constraintTop_toBottomOf="@id/txtDestinationLabel">
-
-                        <TextView
-                            android:id="@+id/txtCountdownNumber"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-black"
-                            android:text="12"
-                            android:textColor="@color/navy_blue_1"
-                            android:textSize="32sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/txtCountdownLabel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:fontFamily="sans-serif-black"
-                            android:text="days to go"
-                            android:textColor="@color/navy_blue_2"
-                            android:textSize="22sp"
-                            android:textStyle="bold" />
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/txtDates"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_marginTop="2dp"
-                        android:text="May 14 – 18 · 4 days"
-                        android:textColor="#999999"
-                        android:textSize="12sp"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/imgTrip"
-                        app:layout_constraintTop_toBottomOf="@id/layoutDays" />
-
-                    <ProgressBar
-                        android:id="@+id/progressTrip"
-                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                        android:layout_width="0dp"
-                        android:layout_height="6dp"
-                        android:layout_marginStart="12dp"
-                        android:layout_marginTop="8dp"
-                        android:max="100"
-                        android:progress="40"
-                        android:progressBackgroundTint="#E0E0E0"
-                        android:progressTint="@color/light_turq_1"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/imgTrip"
-                        app:layout_constraintTop_toBottomOf="@id/txtDates" />
-
-                    <!-- Placeholder afisat cand nu exista nicio calatorie planificata viitoare -->
-                    <LinearLayout
-                        android:id="@+id/layoutNoTripPlaceholder"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:paddingVertical="14dp"
-                        android:visibility="gone"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent">
-
-                        <ImageView
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:src="@drawable/ic_wand"
-                            app:tint="@color/light_turq_1" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:fontFamily="sans-serif-black"
-                            android:gravity="center"
-                            android:text="What are you waiting for?\nPlan your next trip!"
-                            android:textColor="@color/navy_blue_1"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                    </LinearLayout>
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/btnPlanTrip"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@color/blue"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:background="@drawable/bg_plan_overlay"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintHorizontal_bias="0.0"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintVertical_bias="0.0" />
-
-                    <ImageView
-                        android:id="@+id/imgWand"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_margin="16dp"
-                        android:background="@drawable/bg_wand_circle"
-                        android:padding="12dp"
-                        android:src="@drawable/ic_wand"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_timer"
                         app:tint="@color/blue" />
 
                     <TextView
-                        android:id="@+id/txtPlanTitle"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_marginTop="16dp"
-                        android:fontFamily="sans-serif-black"
-                        android:text="Plan a new trip"
-                        android:textColor="@color/white"
-                        android:textSize="16sp"
+                        android:layout_marginStart="4dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.15"
+                        android:text="YOUR NEXT TRIP"
+                        android:textColor="@color/blue"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardNextTrip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:cardBackgroundColor="@color/card"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="14dp">
+
+                        <ImageView
+                            android:id="@+id/imgTrip"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            android:background="@drawable/bg_card_top_rounded"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/rome"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <TextView
+                            android:id="@+id/txtDestinationLabel"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:letterSpacing="0.1"
+                            android:text="ROME, ITALY"
+                            android:textColor="@color/light_turq_1"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/imgTrip"
+                            app:layout_constraintTop_toTopOf="@id/imgTrip" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutDays"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginTop="4dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/imgTrip"
+                            app:layout_constraintTop_toBottomOf="@id/txtDestinationLabel">
+
+                            <TextView
+                                android:id="@+id/txtCountdownNumber"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-black"
+                                android:text="12"
+                                android:textColor="@color/navy_blue_1"
+                                android:textSize="32sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/txtCountdownLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:fontFamily="sans-serif-black"
+                                android:text="days to go"
+                                android:textColor="@color/navy_blue_2"
+                                android:textSize="22sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/txtDates"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginTop="2dp"
+                            android:text="May 14 – 18 · 4 days"
+                            android:textColor="#999999"
+                            android:textSize="12sp"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="@id/layoutDays"
+                            app:layout_constraintTop_toBottomOf="@id/layoutDays" />
+
+                        <ProgressBar
+                            android:id="@+id/progressTrip"
+                            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                            android:layout_width="0dp"
+                            android:layout_height="6dp"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginTop="8dp"
+                            android:max="100"
+                            android:progress="40"
+                            android:progressBackgroundTint="#E0E0E0"
+                            android:progressTint="@color/light_turq_1"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/imgTrip"
+                            app:layout_constraintTop_toBottomOf="@id/txtDates" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutNoTripPlaceholder"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:paddingVertical="14dp"
+                            android:visibility="gone"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent">
+
+                            <ImageView
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:src="@drawable/ic_wand"
+                                app:tint="@color/light_turq_1" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:fontFamily="sans-serif-black"
+                                android:gravity="center"
+                                android:text="What are you waiting for?\nPlan your next trip!"
+                                android:textColor="@color/navy_blue_1"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btnPlanTrip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:cardBackgroundColor="@color/blue"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:background="@drawable/bg_plan_overlay"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintHorizontal_bias="0.0"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintVertical_bias="0.0" />
+
+                        <ImageView
+                            android:id="@+id/imgWand"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_margin="16dp"
+                            android:background="@drawable/bg_wand_circle"
+                            android:padding="12dp"
+                            android:src="@drawable/ic_wand"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:tint="@color/blue" />
+
+                        <TextView
+                            android:id="@+id/txtPlanTitle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginTop="16dp"
+                            android:fontFamily="sans-serif-black"
+                            android:text="Plan a new trip"
+                            android:textColor="@color/white"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            app:layout_constraintEnd_toStartOf="@id/btnPlanArrow"
+                            app:layout_constraintStart_toEndOf="@id/imgWand"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <TextView
+                            android:id="@+id/txtPlanSubtitle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="16dp"
+                            android:text="Destination, dates &amp; an AI itinerary"
+                            android:textColor="#CCFFFFFF"
+                            android:textSize="12sp"
+                            app:layout_constraintEnd_toStartOf="@id/btnPlanArrow"
+                            app:layout_constraintStart_toEndOf="@id/imgWand"
+                            app:layout_constraintTop_toBottomOf="@id/txtPlanTitle" />
+
+                        <ImageView
+                            android:id="@+id/btnPlanArrow"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="16dp"
+                            android:src="@drawable/ic_arrow_forward"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:tint="@color/white" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp">
+
+                    <TextView
+                        android:id="@+id/txtRecommended"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Recommended for you"
+                        android:textColor="@color/navy_blue_1"
+                        android:textSize="15sp"
                         android:textStyle="bold"
-                        app:layout_constraintEnd_toStartOf="@id/btnPlanArrow"
-                        app:layout_constraintStart_toEndOf="@id/imgWand"
+                        app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <TextView
-                        android:id="@+id/txtPlanSubtitle"
-                        android:layout_width="0dp"
+                        android:id="@+id/txtSeeAll"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginBottom="16dp"
-                        android:text="Destination, dates &amp; an AI itinerary"
-                        android:textColor="#CCFFFFFF"
-                        android:textSize="12sp"
-                        app:layout_constraintEnd_toStartOf="@id/btnPlanArrow"
-                        app:layout_constraintStart_toEndOf="@id/imgWand"
-                        app:layout_constraintTop_toBottomOf="@id/txtPlanTitle" />
-
-                    <ImageView
-                        android:id="@+id/btnPlanArrow"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginEnd="16dp"
-                        android:src="@drawable/ic_arrow_forward"
-                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:text="See all"
+                        android:textColor="@color/light_turq_1"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:tint="@color/white" />
+                        app:layout_constraintTop_toTopOf="parent" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
-            </androidx.cardview.widget.CardView>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp">
-
-                <TextView
-                    android:id="@+id/txtRecommended"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Recommended for you"
-                    android:textColor="@color/navy_blue_1"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
 
-                <TextView
-                    android:id="@+id/txtSeeAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="See all"
-                    android:textColor="@color/light_turq_1"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="160dp"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="4dp">
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <ImageView
+                                android:id="@+id/imgRec1"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/paris" />
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/bg_card_gradient" />
+
+                            <TextView
+                                android:id="@+id/txtRating1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="8dp"
+                                android:background="@drawable/bg_rating"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="4dp"
+                                android:text="⭐ 4.9"
+                                android:textColor="@color/navy_blue_1"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <TextView
+                                android:id="@+id/txtCityName1"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="8dp"
+                                android:fontFamily="sans-serif-black"
+                                android:text="Paris"
+                                android:textColor="@color/white"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                app:layout_constraintBottom_toTopOf="@id/txtMatch1"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent" />
+
+                            <TextView
+                                android:id="@+id/txtMatch1"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginHorizontal="8dp"
+                                android:layout_marginBottom="8dp"
+                                android:text="France · 92% match"
+                                android:textColor="#CCFFFFFF"
+                                android:textSize="11sp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent" />
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="160dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="4dp">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <ImageView
+                                android:id="@+id/imgRec2"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/barcelona" />
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/bg_card_gradient" />
+
+                            <TextView
+                                android:id="@+id/txtRating2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="8dp"
+                                android:background="@drawable/bg_rating"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="4dp"
+                                android:text="⭐ 4.8"
+                                android:textColor="@color/navy_blue_1"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <TextView
+                                android:id="@+id/txtCityName2"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="8dp"
+                                android:fontFamily="sans-serif-black"
+                                android:text="Barcelona"
+                                android:textColor="@color/white"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                app:layout_constraintBottom_toTopOf="@id/txtMatch2"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent" />
+
+                            <TextView
+                                android:id="@+id/txtMatch2"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginHorizontal="8dp"
+                                android:layout_marginBottom="8dp"
+                                android:text="Spain · 88% match"
+                                android:textColor="#CCFFFFFF"
+                                android:textSize="11sp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent" />
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+        <LinearLayout
+            android:id="@+id/bottomNav"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:background="@color/white"
+            android:elevation="8dp"
+            android:orientation="horizontal"
+            android:weightSum="4"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal"
-                android:weightSum="2">
+                android:id="@+id/btnDiscover"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
 
-                <androidx.cardview.widget.CardView
-                    android:layout_width="0dp"
-                    android:layout_height="160dp"
-                    android:layout_marginEnd="6dp"
-                    android:layout_weight="1"
-                    app:cardCornerRadius="14dp"
-                    app:cardElevation="4dp">
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_discover"
+                    app:tint="@color/light_turq_1" />
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/nav_discover"
+                    android:textColor="@color/light_turq_1"
+                    android:textSize="10sp" />
 
-                        <ImageView
-                            android:id="@+id/imgRec1"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/paris" />
+            </LinearLayout>
 
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:background="@drawable/bg_card_gradient" />
+            <LinearLayout
+                android:id="@+id/btnMap"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/txtRating1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="8dp"
-                            android:background="@drawable/bg_rating"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp"
-                            android:text="⭐ 4.9"
-                            android:textColor="@color/navy_blue_1"
-                            android:textSize="12sp"
-                            android:textStyle="bold"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_map"
+                    app:tint="#AAAAAA" />
 
-                        <TextView
-                            android:id="@+id/txtCityName1"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="8dp"
-                            android:fontFamily="sans-serif-black"
-                            android:text="Paris"
-                            android:textColor="@color/white"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            app:layout_constraintBottom_toTopOf="@id/txtMatch1"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/nav_map"
+                    android:textColor="#AAAAAA"
+                    android:textSize="10sp" />
 
-                        <TextView
-                            android:id="@+id/txtMatch1"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="8dp"
-                            android:layout_marginBottom="8dp"
-                            android:text="France · 92% match"
-                            android:textColor="#CCFFFFFF"
-                            android:textSize="11sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent" />
+            </LinearLayout>
 
-                    </androidx.constraintlayout.widget.ConstraintLayout>
+            <LinearLayout
+                android:id="@+id/btnWishlist"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
 
-                </androidx.cardview.widget.CardView>
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_heart"
+                    app:tint="#AAAAAA" />
 
-                <androidx.cardview.widget.CardView
-                    android:layout_width="0dp"
-                    android:layout_height="160dp"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    app:cardCornerRadius="14dp"
-                    app:cardElevation="4dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/nav_wishlist"
+                    android:textColor="#AAAAAA"
+                    android:textSize="10sp" />
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+            </LinearLayout>
 
-                        <ImageView
-                            android:id="@+id/imgRec2"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/barcelona" />
+            <LinearLayout
+                android:id="@+id/btnAI"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
 
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:background="@drawable/bg_card_gradient" />
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_ai"
+                    app:tint="#AAAAAA" />
 
-                        <TextView
-                            android:id="@+id/txtRating2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="8dp"
-                            android:background="@drawable/bg_rating"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp"
-                            android:text="⭐ 4.8"
-                            android:textColor="@color/navy_blue_1"
-                            android:textSize="12sp"
-                            android:textStyle="bold"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-
-                        <TextView
-                            android:id="@+id/txtCityName2"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="8dp"
-                            android:fontFamily="sans-serif-black"
-                            android:text="Barcelona"
-                            android:textColor="@color/white"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            app:layout_constraintBottom_toTopOf="@id/txtMatch2"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent" />
-
-                        <TextView
-                            android:id="@+id/txtMatch2"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="8dp"
-                            android:layout_marginBottom="8dp"
-                            android:text="Spain · 88% match"
-                            android:textColor="#CCFFFFFF"
-                            android:textSize="11sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent" />
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-
-                </androidx.cardview.widget.CardView>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/nav_ai"
+                    android:textColor="#AAAAAA"
+                    android:textSize="10sp" />
 
             </LinearLayout>
 
         </LinearLayout>
 
-    </androidx.core.widget.NestedScrollView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <LinearLayout
-        android:id="@+id/bottomNav"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:background="@color/white"
-        android:elevation="8dp"
-        android:orientation="horizontal"
-        android:weightSum="4"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+    <!-- CONTAINER DE OVERLAY -->
+    <FrameLayout
+        android:id="@+id/splashOverlayContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg"
+        android:elevation="999dp"
+        android:clickable="true"
+        android:focusable="true">
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/splashOverlay"
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:layout_gravity="center"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_renderMode="hardware"
+            app:lottie_rawRes="@raw/splash_screen" />
 
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_discover"
-                app:tint="@color/light_turq_1" />
+    </FrameLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="@string/nav_discover"
-                android:textColor="@color/light_turq_1"
-                android:textSize="10sp" />
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
 
-        </LinearLayout>
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/loadingAnimation"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            app:lottie_rawRes="@raw/loading_screen"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true" />
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_map"
-                app:tint="#AAAAAA" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="@string/nav_map"
-                android:textColor="#AAAAAA"
-                android:textSize="10sp" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_heart"
-                app:tint="#AAAAAA" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="@string/nav_wishlist"
-                android:textColor="#AAAAAA"
-                android:textSize="10sp" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btnAI"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_ai"
-                app:tint="#AAAAAA" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="@string/nav_ai"
-                android:textColor="#AAAAAA"
-                android:textSize="10sp" />
-
-        </LinearLayout>
-
-    </LinearLayout>
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

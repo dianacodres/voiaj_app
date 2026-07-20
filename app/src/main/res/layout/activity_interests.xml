@@ -4,14 +4,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg">
+    android:background="@color/bg"
+    android:id="@+id/main">
 
     <ImageView
         android:id="@+id/btnBack"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="26dp"
         android:padding="10dp"
         android:background="@drawable/interests_bg_back_button"
         android:src="@drawable/interests_ic_back"
@@ -178,7 +179,7 @@
         android:id="@+id/btnContinue"
         android:layout_width="0dp"
         android:layout_height="55dp"
-        android:layout_marginBottom="28dp"
+        android:layout_marginBottom="40dp"
         android:layout_marginHorizontal="30dp"
         android:text="@string/continue_btn"
         android:textAllCaps="false"
@@ -190,5 +191,26 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- CONTAINERUL UNIFICAT DE LOADING (Adăugat peste restul elementelor) -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/splashOverlay"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:layout_gravity="center"
+            app:lottie_rawRes="@raw/splash_screen"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true" />
+
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

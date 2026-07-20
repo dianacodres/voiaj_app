@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,6 +31,7 @@ import java.util.concurrent.Executors;
 
 public class CityDetailActivity extends AppCompatActivity {
 
+    private static final String TAG = "CITY_DETAIL_ACTIVITY";
     private FirebaseFirestore db;
 
     private TextView txtCityName, txtCountryLabel, txtCityRating, txtCityTagline;
@@ -36,11 +39,11 @@ public class CityDetailActivity extends AppCompatActivity {
     private TextView txtGenerateItineraryTitle, txtGenerateItinerarySub;
 
     private TextView txtTemp, txtWeatherCondition;
+    private TextView txtNoAttractions, txtNoRestaurants;
 
     private String currentCityId;
     private String currentCountryId;
 
-    // Cheia ta de la OpenWeatherMap
     private final String WEATHER_API_KEY = "8b797ca0d5266ca229d83febd665dbc7";
 
     @Override
@@ -70,6 +73,8 @@ public class CityDetailActivity extends AppCompatActivity {
 
         txtTemp = findViewById(R.id.txtTemp);
         txtWeatherCondition = findViewById(R.id.txtWeatherCondition);
+        txtNoAttractions = findViewById(R.id.txtNoAttractions);
+        txtNoRestaurants = findViewById(R.id.txtNoRestaurants);
 
         ViewCompat.setOnApplyWindowInsetsListener(
                 findViewById(R.id.cityDetailRoot), (v, insets) -> {
@@ -85,9 +90,9 @@ public class CityDetailActivity extends AppCompatActivity {
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        findViewById(R.id.btnPlanTrip).setOnClickListener(v -> {
-            startActivity(new Intent(CityDetailActivity.this, PlanTripActivity.class));
-        });
+        findViewById(R.id.btnPlanTrip).setOnClickListener(v ->
+                startActivity(new Intent(CityDetailActivity.this, PlanTripActivity.class))
+        );
 
         findViewById(R.id.tvViewAllAttractions).setOnClickListener(v -> {
             Intent intent = new Intent(CityDetailActivity.this, AllItemsActivity.class);
@@ -119,11 +124,34 @@ public class CityDetailActivity extends AppCompatActivity {
                                 txtCityName.setText(city.getName());
 
                                 if (txtGenerateItineraryTitle != null) {
-                                    txtGenerateItineraryTitle.setText("Generate a " + city.getName() + " itinerary");
+                                    txtGenerateItineraryTitle.setText(String.format("Generate a %s itinerary", city.getName()));
                                 }
 
                                 if (txtGenerateItinerarySub != null) {
-                                    txtGenerateItinerarySub.setText("Let the AI build your perfect days in " + city.getName());
+                                    txtGenerateItinerarySub.setText(String.format("Let the AI build your perfect days in %s", city.getName()));
+                                }
+                            }
+
+                            ImageView imgCity = findViewById(R.id.imgCity);
+                            if (imgCity != null) {
+                                String rawUrl = city.getImageUrl();
+                                if (rawUrl != null && (rawUrl.startsWith("http://") || rawUrl.startsWith("https://"))) {
+                                    com.bumptech.glide.Glide.with(this)
+                                            .load(rawUrl)
+                                            .dontAnimate()
+                                            .placeholder(R.drawable.rome)
+                                            .error(R.drawable.rome)
+                                            .into(imgCity);
+                                } else {
+                                    int resId = 0;
+                                    if (city.getId() != null) {
+                                        resId = getResources().getIdentifier(city.getId().trim().toLowerCase(), "drawable", getPackageName());
+                                    }
+                                    com.bumptech.glide.Glide.with(this)
+                                            .load(resId != 0 ? resId : R.drawable.rome)
+                                            .dontAnimate()
+                                            .placeholder(R.drawable.rome)
+                                            .into(imgCity);
                                 }
                             }
 
@@ -134,11 +162,11 @@ public class CityDetailActivity extends AppCompatActivity {
                             }
 
                             if (city.getRating() != null && txtCityRating != null) {
-                                txtCityRating.setText("☆ " + city.getRating());
+                                txtCityRating.setText(String.format(Locale.US, "☆ %.1f", city.getRating()));
                             }
 
                             if (city.getTagline() != null && txtCityTagline != null) {
-                                txtCityTagline.setText("· " + city.getTagline());
+                                txtCityTagline.setText(String.format("· %s", city.getTagline()));
                             }
 
                             if (city.getCurrency() != null && txtCurrency != null) {
@@ -150,7 +178,7 @@ public class CityDetailActivity extends AppCompatActivity {
                             }
 
                             if (city.getAvgDayBudget() != null && txtAvgDay != null) {
-                                txtAvgDay.setText("~€" + city.getAvgDayBudget());
+                                txtAvgDay.setText(String.format("~€%s", city.getAvgDayBudget()));
                             }
 
                             if (city.getLat() != null && city.getLon() != null) {
@@ -165,12 +193,14 @@ public class CityDetailActivity extends AppCompatActivity {
                 });
     }
 
-    /** Incarca primele 2 atractii si le pune in cardurile Colosseum/Vatican Museums. */
     private void loadTopAttractions() {
         PoiRepository poiRepository = new PoiRepository();
         poiRepository.getAttractions(currentCountryId, currentCityId, new PoiRepository.AttractionListCallback() {
             @Override
             public void onSuccess(List<Attraction> attractions) {
+                View card1 = findViewById(R.id.cardAttraction1);
+                View card2 = findViewById(R.id.cardAttraction2);
+
                 ImageView img1 = findViewById(R.id.imgColosseum);
                 TextView name1 = findViewById(R.id.txtAttraction1Name);
                 TextView sub1 = findViewById(R.id.txtAttraction1Subtitle);
@@ -181,57 +211,109 @@ public class CityDetailActivity extends AppCompatActivity {
                 TextView sub2 = findViewById(R.id.txtAttraction2Subtitle);
                 ImageView btn2 = findViewById(R.id.btnTicket2);
 
-                if (attractions.size() > 0) bindAttraction(attractions.get(0), img1, name1, sub1, btn1);
-                if (attractions.size() > 1) bindAttraction(attractions.get(1), img2, name2, sub2, btn2);
+                if (attractions == null || attractions.isEmpty()) {
+                    if (card1 != null) card1.setVisibility(View.GONE);
+                    if (card2 != null) card2.setVisibility(View.GONE);
+                    if (txtNoAttractions != null) txtNoAttractions.setVisibility(View.VISIBLE);
+                } else {
+                    if (txtNoAttractions != null) txtNoAttractions.setVisibility(View.GONE);
+
+                    if (!attractions.isEmpty()) {
+                        if (card1 != null) card1.setVisibility(View.VISIBLE);
+                        bindAttraction(attractions.get(0), img1, name1, sub1, btn1);
+                    } else if (card1 != null) {
+                        card1.setVisibility(View.GONE);
+                    }
+
+                    if (attractions.size() > 1) {
+                        if (card2 != null) card2.setVisibility(View.VISIBLE);
+                        bindAttraction(attractions.get(1), img2, name2, sub2, btn2);
+                    } else if (card2 != null) {
+                        card2.setVisibility(View.GONE);
+                    }
+                }
             }
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(CityDetailActivity.this,
-                        "Couldn't load attractions: " + errorMessage, Toast.LENGTH_LONG).show();
+                if (txtNoAttractions != null) txtNoAttractions.setVisibility(View.VISIBLE);
             }
         });
     }
 
-    /** Incarca primele 2 restaurante si le pune in cardurile Roscioli/Da Enzo. */
     private void loadTopRestaurants() {
         PoiRepository poiRepository = new PoiRepository();
         poiRepository.getRestaurants(currentCountryId, currentCityId, new PoiRepository.RestaurantListCallback() {
             @Override
             public void onSuccess(List<Restaurant> restaurants) {
+                View card1 = findViewById(R.id.cardRestaurant1);
+                View card2 = findViewById(R.id.cardRestaurant2);
+
                 ImageView img1 = findViewById(R.id.imgRoscioli);
                 TextView name1 = findViewById(R.id.txtRestaurant1Name);
                 TextView sub1 = findViewById(R.id.txtRestaurant1Subtitle);
-                TextView price1 = findViewById(R.id.priceRoscioli);
+
 
                 ImageView img2 = findViewById(R.id.imgDaEnzo);
                 TextView name2 = findViewById(R.id.txtRestaurant2Name);
                 TextView sub2 = findViewById(R.id.txtRestaurant2Subtitle);
-                TextView price2 = findViewById(R.id.priceDaEnzo);
 
-                if (restaurants.size() > 0) bindRestaurant(restaurants.get(0), img1, name1, sub1, price1);
-                if (restaurants.size() > 1) bindRestaurant(restaurants.get(1), img2, name2, sub2, price2);
+                if (restaurants == null || restaurants.isEmpty()) {
+                    if (card1 != null) card1.setVisibility(View.GONE);
+                    if (card2 != null) card2.setVisibility(View.GONE);
+                    if (txtNoRestaurants != null) txtNoRestaurants.setVisibility(View.VISIBLE);
+                } else {
+                    if (txtNoRestaurants != null) txtNoRestaurants.setVisibility(View.GONE);
+
+                    if (!restaurants.isEmpty()) {
+                        if (card1 != null) card1.setVisibility(View.VISIBLE);
+                        bindRestaurant(restaurants.get(0), img1, name1, sub1, null);
+                    } else if (card1 != null) {
+                        card1.setVisibility(View.GONE);
+                    }
+
+                    if (restaurants.size() > 1) {
+                        if (card2 != null) card2.setVisibility(View.VISIBLE);
+                        bindRestaurant(restaurants.get(1), img2, name2, sub2, null);
+                    } else if (card2 != null) {
+                        card2.setVisibility(View.GONE);
+                    }
+                }
             }
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(CityDetailActivity.this,
-                        "Couldn't load restaurants: " + errorMessage, Toast.LENGTH_LONG).show();
+                if (txtNoRestaurants != null) txtNoRestaurants.setVisibility(View.VISIBLE);
             }
         });
     }
 
-    /** Pune datele reale ale unei atractii pe card, si leaga iconita de bilet/info la link. */
     private void bindAttraction(Attraction a, ImageView img, TextView name, TextView subtitle, ImageView ticketBtn) {
         if (name != null) name.setText(a.getName());
         if (subtitle != null) subtitle.setText(PoiRow.fromAttraction(a).subtitle);
+
         if (img != null) {
-            int resId = 0;
-            if (a.getId() != null) resId = getResources().getIdentifier(a.getId(), "drawable", getPackageName());
-            img.setImageResource(resId != 0 ? resId : R.drawable.rome);
+            String rawUrl = null;
+            try { rawUrl = a.getImageUrl(); } catch (Exception ignored) {}
+
+            if (rawUrl != null && (rawUrl.startsWith("http://") || rawUrl.startsWith("https://"))) {
+                com.bumptech.glide.Glide.with(this)
+                        .load(rawUrl)
+                        .dontAnimate()
+                        .placeholder(R.drawable.rome)
+                        .error(R.drawable.rome)
+                        .into(img);
+            } else {
+                int resId = 0;
+                if (a.getId() != null) resId = getResources().getIdentifier(a.getId().trim().toLowerCase(), "drawable", getPackageName());
+                com.bumptech.glide.Glide.with(this)
+                        .load(resId != 0 ? resId : R.drawable.rome)
+                        .dontAnimate()
+                        .placeholder(R.drawable.rome)
+                        .into(img);
+            }
         }
 
-        // DOAR iconita de bilet deschide link-ul, nu tot cardul
         if (ticketBtn != null) {
             if (a.getTicketUrl() != null && !a.getTicketUrl().isEmpty()) {
                 ticketBtn.setImageResource(R.drawable.ic_ticket);
@@ -249,21 +331,36 @@ public class CityDetailActivity extends AppCompatActivity {
         if (name != null) name.setText(r.getName());
         if (subtitle != null) subtitle.setText(PoiRow.fromRestaurant(r).subtitle);
         if (price != null) price.setText(r.getPriceRange() != null ? r.getPriceRange() : "");
+
         if (img != null) {
-            int resId = 0;
-            if (r.getId() != null) resId = getResources().getIdentifier(r.getId(), "drawable", getPackageName());
-            img.setImageResource(resId != 0 ? resId : R.drawable.rome);
+            String rawUrl = null;
+            try { rawUrl = r.getImageUrl(); } catch (Exception ignored) {}
+
+            if (rawUrl != null && (rawUrl.startsWith("http://") || rawUrl.startsWith("https://"))) {
+                com.bumptech.glide.Glide.with(this)
+                        .load(rawUrl)
+                        .dontAnimate()
+                        .placeholder(R.drawable.rome)
+                        .error(R.drawable.rome)
+                        .into(img);
+            } else {
+                int resId = 0;
+                if (r.getId() != null) resId = getResources().getIdentifier(r.getId().trim().toLowerCase(), "drawable", getPackageName());
+                com.bumptech.glide.Glide.with(this)
+                        .load(resId != 0 ? resId : R.drawable.rome)
+                        .dontAnimate()
+                        .placeholder(R.drawable.rome)
+                        .into(img);
+            }
         }
     }
 
     private void openLink(String url) {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
     }
 
-    /** Emoji corespunzator conditiei meteo principale returnate de OpenWeatherMap. */
     private String getWeatherEmoji(String condition) {
         if (condition == null) return "🌤️";
         switch (condition) {
@@ -280,10 +377,6 @@ public class CityDetailActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Cere vremea pe baza de coordonate exacte (lat/lon), nu nume de oras -
-     * elimina complet orice ambiguitate, indiferent cate tari noi adaugi in Firestore.
-     */
     private void fetchWeatherData(double lat, double lon) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
@@ -298,7 +391,7 @@ public class CityDetailActivity extends AppCompatActivity {
                 connection.setRequestMethod("GET");
 
                 int responseCode = connection.getResponseCode();
-                if (responseCode == HttpURLConnection.HTTP_OK) {
+                if (responseCode == 200) {
                     BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     StringBuilder response = new StringBuilder();
                     String inputLine;
@@ -318,20 +411,23 @@ public class CityDetailActivity extends AppCompatActivity {
 
                     handler.post(() -> {
                         if (txtTemp != null) {
-                            txtTemp.setText(temperature + "°");
+                            txtTemp.setText(String.format(Locale.US, "%d°", temperature));
                         }
                         if (txtWeatherCondition != null) {
-                            txtWeatherCondition.setText(emoji + " " + weatherDescription);
+                            txtWeatherCondition.setText(String.format("%s %s", emoji, weatherDescription));
                         }
                     });
                 }
+                connection.disconnect();
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error fetching weather", e);
                 handler.post(() -> {
                     if (txtWeatherCondition != null) {
                         txtWeatherCondition.setText("Offline");
                     }
                 });
+            } finally {
+                executor.shutdown();
             }
         });
     }

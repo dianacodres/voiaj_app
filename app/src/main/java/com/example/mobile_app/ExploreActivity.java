@@ -121,7 +121,6 @@ public class ExploreActivity extends AppCompatActivity implements SensorEventLis
         }
 
         setupButtons();
-        setupFiltersAndRegions();
         setupBottomNavigation();
         setupZoomListener();
         setupCategoryChipsListener();
@@ -489,42 +488,6 @@ public class ExploreActivity extends AppCompatActivity implements SensorEventLis
         userLocationMarker.setIcon(new BitmapDrawable(getResources(), scaledBitmap));
     }
 
-    private void setupFiltersAndRegions() {
-        TextView filterEurope = findViewById(R.id.filterAll);
-        TextView filterWestern = findViewById(R.id.filterWesternEurope);
-        TextView filterCentral = findViewById(R.id.filterCentralEurope);
-        TextView filterEastern = findViewById(R.id.filterEasternEurope);
-        TextView filterNorthern = findViewById(R.id.filterNorthernEurope);
-        TextView filterSouthern = findViewById(R.id.filterSouthernEurope);
-        TextView filterMed = findViewById(R.id.filterMediterranean);
-
-        if (filterEurope != null) regionChips.add(filterEurope);
-        if (filterWestern != null) regionChips.add(filterWestern);
-        if (filterCentral != null) regionChips.add(filterCentral);
-        if (filterEastern != null) regionChips.add(filterEastern);
-        if (filterNorthern != null) regionChips.add(filterNorthern);
-        if (filterSouthern != null) regionChips.add(filterSouthern);
-        if (filterMed != null) regionChips.add(filterMed);
-
-        if (filterEurope != null) {
-            filterEurope.setOnClickListener(v -> {
-                updateSelectedChipVisuals(filterEurope);
-                focusedCityId = null;
-                if (cardMapPopup != null) {
-                    cardMapPopup.setVisibility(View.GONE);
-                }
-                mapView.getController().animateTo(EUROPE_CENTER, EUROPE_ZOOM, 700L);
-                displayAllLoadedCities();
-            });
-        }
-
-        setOnRegionClickListener(filterWestern, new GeoPoint(48.5, 2.5), 6.0, "western");
-        setOnRegionClickListener(filterCentral, new GeoPoint(49.8, 15.0), 6.0, "central");
-        setOnRegionClickListener(filterEastern, new GeoPoint(47.5, 25.5), 5.8, "eastern");
-        setOnRegionClickListener(filterNorthern, new GeoPoint(62.0, 15.0), 5.2, "northern");
-        setOnRegionClickListener(filterSouthern, new GeoPoint(41.9, 12.6), 6.0, "southern");
-        setOnRegionClickListener(filterMed, new GeoPoint(39.0, 18.0), 5.8, "mediterranean");
-    }
 
     private void setOnRegionClickListener(TextView chip, GeoPoint center, double zoomLevel, String regionKey) {
         if (chip != null) {

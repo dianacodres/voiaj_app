@@ -14,18 +14,24 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Adapter pentru afisarea trips-urilor (planned sau completed) intr-o lista verticala.
- * showCountdownBadge = true -> afiseaza badge-ul cu zilele ramase (doar are sens la planned).
- */
 public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder> {
+
+    interface OnTripClick {
+        void onClick(Trip trip);
+    }
 
     private final List<Trip> trips;
     private final boolean showCountdownBadge;
+    private final OnTripClick clickListener;
 
     public TripAdapter(List<Trip> trips, boolean showCountdownBadge) {
+        this(trips, showCountdownBadge, null);
+    }
+
+    public TripAdapter(List<Trip> trips, boolean showCountdownBadge, OnTripClick clickListener) {
         this.trips = trips;
         this.showCountdownBadge = showCountdownBadge;
+        this.clickListener = clickListener;
     }
 
     @NonNull
@@ -44,12 +50,40 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
         holder.txtTitle.setText(trip.getCityName() + countryLabel);
         holder.txtSubtitle.setText(formatSubtitle(trip));
 
-        int imageResId = holder.itemView.getResources()
-                .getIdentifier(trip.getCityId(), "drawable", holder.itemView.getContext().getPackageName());
-        if (imageResId == 0) {
-            imageResId = R.drawable.interests_prelogin_img_3; // fallback generic daca nu exista poza orasului
+        if (holder.imgTrip != null) {
+            String rawUrl = trip.getImageUrl();
+
+            if (rawUrl != null && (rawUrl.startsWith("http://") || rawUrl.startsWith("https://"))) {
+                com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                        .load(rawUrl)
+                        .dontAnimate()
+                        .placeholder(R.drawable.rome)
+                        .error(R.drawable.rome)
+                        .into(holder.imgTrip);
+            } else {
+                int imageResId = 0;
+                if (rawUrl != null && !rawUrl.trim().isEmpty()) {
+                    String cleanName = rawUrl.replace(".jpg", "").replace(".png", "").trim().toLowerCase();
+                    imageResId = holder.itemView.getResources()
+                            .getIdentifier(cleanName, "drawable", holder.itemView.getContext().getPackageName());
+                }
+
+                if (imageResId == 0 && trip.getCityId() != null) {
+                    String fallbackId = trip.getCityId().trim().toLowerCase();
+                    imageResId = holder.itemView.getResources()
+                            .getIdentifier(fallbackId, "drawable", holder.itemView.getContext().getPackageName());
+                }
+
+                if (imageResId == 0) {
+                    imageResId = R.drawable.rome;
+                }
+
+                com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                        .load(imageResId)
+                        .dontAnimate()
+                        .into(holder.imgTrip);
+            }
         }
-        holder.imgTrip.setImageResource(imageResId);
 
         if (showCountdownBadge) {
             trip.recalculateCountdown();
@@ -65,6 +99,10 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
         } else {
             holder.layoutBadge.setVisibility(View.GONE);
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (clickListener != null) clickListener.onClick(trip);
+        });
     }
 
     @Override

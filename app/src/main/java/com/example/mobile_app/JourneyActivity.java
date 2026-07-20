@@ -31,8 +31,10 @@ import com.google.firebase.auth.FirebaseUser;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class JourneyActivity extends AppCompatActivity {
 
@@ -40,59 +42,55 @@ public class JourneyActivity extends AppCompatActivity {
     private LinearLayout containerCompletedSection;
 
     private TripRepository tripRepository;
+    private CityRepository cityRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // ── 1. ACTIVARE EDGE-TO-EDGE FĂRĂ STRATUL GRI (SCRIM) ──
-        // Forțăm sistemul să nu adauge nicio nuanță automată de fundal (scrim) deasupra barei de status
-        EdgeToEdge.enable(this,
-                SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-                SystemBarStyle.dark(Color.TRANSPARENT) // Primește un singur parametru!
-        );
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_journey);
 
-        // ── 2. ASIGURARE TRANSPARENȚĂ ȘI ICONIȚE NEGRE ──
         Window window = getWindow();
+        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(Color.TRANSPARENT);
+        window.setNavigationBarColor(Color.TRANSPARENT);
 
-        // Dezactivăm explicit orice protecție de contrast la nivel de window, dacă există
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            window.setStatusBarContrastEnforced(true); // Schimbat numele metodei în cel nativ corect
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            android.view.WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsAppearance(0, android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+            }
+        } else {
+            window.getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
         }
 
-        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, window.getDecorView());
-        if (controller != null) {
-            controller.setAppearanceLightStatusBars(true); // Iconițe și ceas de culoare neagră
+        View rootLayout = findViewById(R.id.wishlistRoot);
+        if (rootLayout != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(0, 0, 0, systemBars.bottom);
+                return insets;
+            });
         }
 
-        // ── GESTIONARE INSETS (PADDING) ──
-        View rootLayout = findViewById(android.R.id.content);
-        ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        // ── INITIALIZARE CONTINEARE TRASURI ──
         containerActiveSection = findViewById(R.id.containerActiveSection);
         containerCompletedSection = findViewById(R.id.containerCompletedSection);
 
         tripRepository = new TripRepository();
+        cityRepository = new CityRepository();
 
-        // ── LOGICĂ SWITCH PENTRU TOGGLE BUTTON ──
-        // ── LOGICĂ SWITCH CU COLORARE DINAMICĂ (JAVA OVERRIDE) ──
         MaterialButtonToggleGroup toggleGroupJourney = findViewById(R.id.toggleGroupJourney);
         com.google.android.material.button.MaterialButton btnTabActive = findViewById(R.id.btnTabActive);
         com.google.android.material.button.MaterialButton btnTabCompleted = findViewById(R.id.btnTabCompleted);
 
-// Culorile extrase din resursele tale
         int turqColor = ContextCompat.getColor(this, R.color.light_turq_1);
         int creamColor = ContextCompat.getColor(this, R.color.cream);
         int navyColor = ContextCompat.getColor(this, R.color.navy_blue_1);
 
-// Setăm starea vizuală inițială (Active e selectat la pornire)
         btnTabActive.setBackgroundColor(turqColor);
         btnTabActive.setTextColor(creamColor);
         btnTabCompleted.setBackgroundColor(Color.TRANSPARENT);
@@ -101,35 +99,26 @@ public class JourneyActivity extends AppCompatActivity {
         toggleGroupJourney.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) {
                 if (checkedId == R.id.btnTabActive) {
-                    // Schimbă panourile
                     containerActiveSection.setVisibility(View.VISIBLE);
                     containerCompletedSection.setVisibility(View.GONE);
 
-                    // Colorează Active -> Full Turquoise + Text Crem
                     btnTabActive.setBackgroundColor(turqColor);
                     btnTabActive.setTextColor(creamColor);
-
-                    // Resetează Completed -> Doar contur (Transparent interior) + Text Navy
                     btnTabCompleted.setBackgroundColor(Color.TRANSPARENT);
                     btnTabCompleted.setTextColor(navyColor);
 
                 } else if (checkedId == R.id.btnTabCompleted) {
-                    // Schimbă panourile
                     containerActiveSection.setVisibility(View.GONE);
                     containerCompletedSection.setVisibility(View.VISIBLE);
 
-                    // Colorează Completed -> Full Turquoise + Text Crem
                     btnTabCompleted.setBackgroundColor(turqColor);
                     btnTabCompleted.setTextColor(creamColor);
-
-                    // Resetează Active -> Doar contur (Transparent interior) + Text Navy
                     btnTabActive.setBackgroundColor(Color.TRANSPARENT);
                     btnTabActive.setTextColor(navyColor);
                 }
             }
         });
 
-        // ── INITIALIZARE BOTTOM NAVIGATION ──
         LinearLayout bottomNav = findViewById(R.id.bottomNav);
         if (bottomNav != null) {
             View btnNavDiscover = bottomNav.getChildAt(0);
@@ -140,7 +129,7 @@ public class JourneyActivity extends AppCompatActivity {
             if (btnNavMap instanceof LinearLayout) {
                 LinearLayout mapLayout = (LinearLayout) btnNavMap;
                 ImageView imgMap = (ImageView) mapLayout.getChildAt(0);
-                TextView txtMap = (TextView) mapLayout.getChildAt(1);
+                TextView txtMap = mapLayout.getChildAt(1) instanceof TextView ? (TextView) mapLayout.getChildAt(1) : null;
                 if (imgMap != null) imgMap.setImageTintList(null);
                 if (imgMap != null) imgMap.setColorFilter(ContextCompat.getColor(this, android.R.color.darker_gray));
                 if (txtMap != null) {
@@ -190,11 +179,6 @@ public class JourneyActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * onResume, nu onCreate: daca navigarea intre taburi reordoneaza aceeasi
-     * instanta in fata (FLAG_ACTIVITY_REORDER_TO_FRONT), onCreate NU se mai
-     * ruleaza a doua oara, dar onResume da - asa raman datele mereu proaspete.
-     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -202,8 +186,6 @@ public class JourneyActivity extends AppCompatActivity {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser == null) return;
 
-        // Mai intai mutam automat trips-urile "planned" care s-au terminat efectiv
-        // (a trecut ultima zi), abia apoi incarcam listele - ca sa fie mereu corecte.
         tripRepository.autoCompleteExpiredTrips(firebaseUser.getUid(), new TripRepository.SimpleCallback() {
             @Override
             public void onSuccess() {
@@ -212,15 +194,11 @@ public class JourneyActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                loadTrips(); // chiar daca esueaza mutarea automata, tot incarcam ce exista
+                loadTrips();
             }
         });
     }
 
-    /**
-     * Incarca savedTrips (impartite in planned/draft dupa camp status) si completedTrips
-     * din Firestore, si populeaza cele 3 RecyclerView-uri.
-     */
     private void loadTrips() {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser == null) return;
@@ -237,12 +215,45 @@ public class JourneyActivity extends AppCompatActivity {
         recyclerDrafts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recyclerCompleted.setLayoutManager(new LinearLayoutManager(this));
 
+        cityRepository.getAllCities(new CityRepository.CityListCallback() {
+            @Override
+            public void onSuccess(List<City> cities) {
+                Map<String, String> cityImageMap = new HashMap<>();
+                for (City c : cities) {
+                    if (c.getId() != null && c.getImageUrl() != null) {
+                        cityImageMap.put(c.getId().toLowerCase().trim(), c.getImageUrl());
+                    }
+                }
+                bindTripsWithMapping(uid, cityImageMap, recyclerPlanned, recyclerDrafts, recyclerCompleted,
+                        txtNoPlannedTrips, txtNoDrafts, txtNoCompletedTrips);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                loadTripsWithoutMapping(uid, recyclerPlanned, recyclerDrafts, recyclerCompleted,
+                        txtNoPlannedTrips, txtNoDrafts, txtNoCompletedTrips);
+            }
+        });
+    }
+
+    private void bindTripsWithMapping(String uid, Map<String, String> cityImageMap,
+                                      RecyclerView recyclerPlanned, RecyclerView recyclerDrafts, RecyclerView recyclerCompleted,
+                                      View txtNoPlannedTrips, View txtNoDrafts, View txtNoCompletedTrips) {
+
         tripRepository.getSavedTrips(uid, new TripRepository.TripListCallback() {
             @Override
             public void onSuccess(List<Trip> savedTrips) {
                 List<Trip> planned = new ArrayList<>();
                 List<Trip> drafts = new ArrayList<>();
+
                 for (Trip trip : savedTrips) {
+                    if (trip.getCityId() != null) {
+                        String officialUrl = cityImageMap.get(trip.getCityId().toLowerCase().trim());
+                        if (officialUrl != null) {
+                            trip.setImageUrl(officialUrl);
+                        }
+                    }
+
                     if ("draft".equals(trip.getStatus())) {
                         drafts.add(trip);
                     } else {
@@ -250,7 +261,7 @@ public class JourneyActivity extends AppCompatActivity {
                     }
                 }
 
-                recyclerPlanned.setAdapter(new TripAdapter(planned, true));
+                recyclerPlanned.setAdapter(new TripAdapter(planned, true, trip -> openTripRoute(trip, false)));
                 txtNoPlannedTrips.setVisibility(planned.isEmpty() ? View.VISIBLE : View.GONE);
 
                 recyclerDrafts.setAdapter(new TripDraftAdapter(drafts,
@@ -269,7 +280,15 @@ public class JourneyActivity extends AppCompatActivity {
         tripRepository.getCompletedTrips(uid, new TripRepository.TripListCallback() {
             @Override
             public void onSuccess(List<Trip> completedTrips) {
-                recyclerCompleted.setAdapter(new TripAdapter(completedTrips, false));
+                for (Trip trip : completedTrips) {
+                    if (trip.getCityId() != null) {
+                        String officialUrl = cityImageMap.get(trip.getCityId().toLowerCase().trim());
+                        if (officialUrl != null) {
+                            trip.setImageUrl(officialUrl);
+                        }
+                    }
+                }
+                recyclerCompleted.setAdapter(new TripAdapter(completedTrips, false, trip -> openTripRoute(trip, false)));
                 txtNoCompletedTrips.setVisibility(completedTrips.isEmpty() ? View.VISIBLE : View.GONE);
             }
 
@@ -280,20 +299,53 @@ public class JourneyActivity extends AppCompatActivity {
         });
     }
 
-    /** Bottom sheet stilizat, cu 2 butoane, care apare la long-press pe un card de draft. */
-    /**
-     * Tap simplu pe un draft (nu long-press) -> deschide PlanTripActivity cu
-     * datele deja completate, ca sa poti modifica orice inainte de a salva din nou.
-     */
-    private void openDraftForEditing(Trip trip) {
-        openDraftForEditing(trip, false);
+    private void loadTripsWithoutMapping(String uid, RecyclerView recyclerPlanned, RecyclerView recyclerDrafts, RecyclerView recyclerCompleted, View txtNoPlannedTrips, View txtNoDrafts, View txtNoCompletedTrips) {
+        tripRepository.getSavedTrips(uid, new TripRepository.TripListCallback() {
+            @Override
+            public void onSuccess(List<Trip> savedTrips) {
+                List<Trip> planned = new ArrayList<>();
+                List<Trip> drafts = new ArrayList<>();
+                for (Trip trip : savedTrips) {
+                    if ("draft".equals(trip.getStatus())) { drafts.add(trip); } else { planned.add(trip); }
+                }
+                recyclerPlanned.setAdapter(new TripAdapter(planned, true, trip -> openTripRoute(trip, false)));
+                txtNoPlannedTrips.setVisibility(planned.isEmpty() ? View.VISIBLE : View.GONE);
+                recyclerDrafts.setAdapter(new TripDraftAdapter(drafts, trip -> openDraftForEditing(trip), trip -> showDraftOptionsDialog(trip)));
+                txtNoDrafts.setVisibility(drafts.isEmpty() ? View.VISIBLE : View.GONE);
+            }
+            @Override
+            public void onError(String errorMessage) {
+                txtNoPlannedTrips.setVisibility(View.VISIBLE);
+                txtNoDrafts.setVisibility(View.VISIBLE);
+            }
+        });
+
+        tripRepository.getCompletedTrips(uid, new TripRepository.TripListCallback() {
+            @Override
+            public void onSuccess(List<Trip> completedTrips) {
+                recyclerCompleted.setAdapter(new TripAdapter(completedTrips, false, trip -> openTripRoute(trip, false)));
+                txtNoCompletedTrips.setVisibility(completedTrips.isEmpty() ? View.VISIBLE : View.GONE);
+            }
+            @Override
+            public void onError(String errorMessage) { txtNoCompletedTrips.setVisibility(View.VISIBLE); }
+        });
     }
 
     /**
-     * @param forceExactDates daca e true, PlanTripActivity porneste direct pe tab-ul
-     *                        "Exact dates" cu calendarul (folosit de butonul "Plan this trip"),
-     *                        chiar daca draft-ul era flexibil (fara date).
+     * Deschide ExploreActivity în modul "traseu pentru un oraș", cu datele trip-ului curent.
      */
+    private void openTripRoute(Trip trip, boolean isDraft) {
+        Intent intent = new Intent(JourneyActivity.this, ExploreActivity.class);
+        intent.putExtra("cityId", trip.getCityId());
+        intent.putExtra("cityName", trip.getCityName());
+        intent.putExtra("isDraft", isDraft);
+        startActivity(intent);
+    }
+
+    private void openDraftForEditing(Trip trip) {
+        openDraftForEditing(trip, true);
+    }
+
     private void openDraftForEditing(Trip trip, boolean forceExactDates) {
         Intent intent = new Intent(this, PlanTripActivity.class);
         intent.putExtra("cityId", trip.getCityId());
@@ -314,11 +366,11 @@ public class JourneyActivity extends AppCompatActivity {
         dialog.setContentView(view);
 
         TextView txtTitle = view.findViewById(R.id.txtDraftOptionsTitle);
-        txtTitle.setText(trip.getCityName());
+        if (txtTitle != null) txtTitle.setText(trip.getCityName());
 
         view.findViewById(R.id.btnPlanThisTrip).setOnClickListener(v -> {
             dialog.dismiss();
-            openDraftForEditing(trip, true); // true = forteaza tab-ul Exact dates, cu calendarul
+            openDraftForEditing(trip, true);
         });
 
         view.findViewById(R.id.btnDeleteDraft).setOnClickListener(v -> {
@@ -344,7 +396,7 @@ public class JourneyActivity extends AppCompatActivity {
         }
 
         TextView txtMessage = view.findViewById(R.id.txtDeleteDialogMessage);
-        txtMessage.setText("Are you sure you want to remove \"" + trip.getCityName() + "\" from your drafts?");
+        if (txtMessage != null) txtMessage.setText("Are you sure you want to remove \"" + trip.getCityName() + "\" from your drafts?");
 
         view.findViewById(R.id.btnCancelDelete).setOnClickListener(v -> dialog.dismiss());
 
@@ -362,13 +414,11 @@ public class JourneyActivity extends AppCompatActivity {
 
                         @Override
                         public void onError(String errorMessage) {
-                            Toast.makeText(JourneyActivity.this,
-                                    "Couldn't delete: " + errorMessage, Toast.LENGTH_LONG).show();
+                            Toast.makeText(JourneyActivity.this, "Couldn't delete: " + errorMessage, Toast.LENGTH_LONG).show();
                         }
                     });
         });
 
         dialog.show();
     }
-
 }

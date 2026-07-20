@@ -7,7 +7,7 @@ package com.example.mobile_app;
 public class PoiRow {
     final String id;
     final String name;
-    final String imageUrl;
+    final String imageUrl; // Păstrat final și integrat asincron în constructor
     final String subtitle; // ex: "2-3h · €18" pentru atractii, "Italian · €30" pentru restaurante
     final String url;      // ticketUrl (platit) sau infoUrl (gratuit) - null daca nu exista niciunul
     final boolean isTicket; // true = "Buy tickets", false = "More info" (pentru afisarea corecta a iconitei)
@@ -37,6 +37,7 @@ public class PoiRow {
             isTicket = false;
         }
 
+        // Preluăm corect a.getImageUrl() din baza de date
         return new PoiRow(a.getId(), a.getName(), a.getImageUrl(), subtitle.trim(), url, isTicket);
     }
 
@@ -47,7 +48,8 @@ public class PoiRow {
             category = Character.toUpperCase(r.getCategory().charAt(0)) + r.getCategory().substring(1);
         }
         String subtitle = neighborhood + (neighborhood.isEmpty() || category.isEmpty() ? "" : " · ") + category;
-        // Restaurantele nu au ticketUrl/infoUrl in schema ta - fara buton de link momentan.
+
+        // Preluăm corect r.getImageUrl() din baza de date
         return new PoiRow(r.getId(), r.getName(), r.getImageUrl(), subtitle.trim(), null, false);
     }
 }

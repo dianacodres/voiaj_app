@@ -67,12 +67,43 @@ public class MoodCityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             double ratingValue = city.getRating() != null ? city.getRating() : 0.0;
             cityHolder.rating.setText(String.format(Locale.US, "★ %.1f", ratingValue));
 
-            int imageResId = cityHolder.itemView.getResources()
-                    .getIdentifier(city.getId(), "drawable", cityHolder.itemView.getContext().getPackageName());
-            if (imageResId == 0) {
-                imageResId = R.drawable.rome;
+            // ── MODIFICAT: Încărcare dinamică și instantanee prin Glide a imaginii orașului ──
+            if (cityHolder.img != null) {
+                String rawUrl = city.getImageUrl();
+
+                if (rawUrl != null && (rawUrl.startsWith("http://") || rawUrl.startsWith("https://"))) {
+                    // Pas A: Încărcare directă din link-ul web Firestore
+                    com.bumptech.glide.Glide.with(cityHolder.itemView.getContext())
+                            .load(rawUrl)
+                            .dontAnimate()
+                            .placeholder(R.drawable.rome)
+                            .error(R.drawable.rome)
+                            .into(cityHolder.img);
+                } else {
+                    // Pas B: Căutare resursă locală în drawable
+                    int imageResId = 0;
+                    if (rawUrl != null && !rawUrl.trim().isEmpty()) {
+                        String cleanName = rawUrl.replace(".jpg", "").replace(".png", "").trim().toLowerCase();
+                        imageResId = cityHolder.itemView.getResources()
+                                .getIdentifier(cleanName, "drawable", cityHolder.itemView.getContext().getPackageName());
+                    }
+
+                    if (imageResId == 0 && city.getId() != null) {
+                        String fallbackId = city.getId().trim().toLowerCase();
+                        imageResId = cityHolder.itemView.getResources()
+                                .getIdentifier(fallbackId, "drawable", cityHolder.itemView.getContext().getPackageName());
+                    }
+
+                    if (imageResId == 0) {
+                        imageResId = R.drawable.rome;
+                    }
+
+                    com.bumptech.glide.Glide.with(cityHolder.itemView.getContext())
+                            .load(imageResId)
+                            .dontAnimate()
+                            .into(cityHolder.img);
+                }
             }
-            cityHolder.img.setImageResource(imageResId);
 
             cityHolder.itemView.setOnClickListener(v -> listener.onClick(city));
         }

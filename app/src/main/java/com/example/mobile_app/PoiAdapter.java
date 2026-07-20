@@ -57,13 +57,36 @@ public class PoiAdapter extends RecyclerView.Adapter<PoiAdapter.VH> {
         holder.name.setText(item.name);
         holder.subtitle.setText(item.subtitle);
 
-        int imageResId = 0;
-        if (item.id != null && !item.id.isEmpty()) {
-            imageResId = holder.itemView.getResources()
-                    .getIdentifier(item.id, "drawable", holder.itemView.getContext().getPackageName());
+        // ── MODIFICAT: Încărcare dinamică prin Glide a imaginii POI (external URL sau resursă locală) ──
+        if (holder.img != null) {
+            String rawUrl = item.imageUrl;
+
+            if (rawUrl != null && (rawUrl.startsWith("http://") || rawUrl.startsWith("https://"))) {
+                // Pas A: Avem link HTTP din Firestore, îl randăm direct de pe web
+                com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                        .load(rawUrl)
+                        .placeholder(R.drawable.rome)
+                        .error(R.drawable.rome)
+                        .into(holder.img);
+            } else {
+                // Pas B: Căutăm resursa locală în drawable folosind item.id
+                int imageResId = 0;
+                if (item.id != null && !item.id.isEmpty()) {
+                    String fallbackId = item.id.trim().toLowerCase();
+                    imageResId = holder.itemView.getResources()
+                            .getIdentifier(fallbackId, "drawable", holder.itemView.getContext().getPackageName());
+                }
+
+                // Pas C: Dacă id-ul local nu există fizic în proiect, aplicăm fallback pe R.drawable.rome
+                if (imageResId == 0) {
+                    imageResId = R.drawable.rome;
+                }
+
+                com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                        .load(imageResId)
+                        .into(holder.img);
+            }
         }
-        if (imageResId == 0) imageResId = R.drawable.rome;
-        holder.img.setImageResource(imageResId);
 
         if (!isSelectionMode) {
             // "View all" - ascundem cerculetul de bifare si aratam in schimb iconita de bilet/info

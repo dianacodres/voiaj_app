@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -87,21 +88,64 @@ public class AIChatActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_aichat);
 
-        ViewCompat.setOnApplyWindowInsetsListener(
-                findViewById(R.id.aiChatRoot), (v, insets) -> {
-                    Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    Insets tastatura = insets.getInsets(WindowInsetsCompat.Type.ime());
-                    int paddingJos = Math.max(systemBars.bottom, tastatura.bottom);
-                    v.setPadding(0, systemBars.top, 0, paddingJos);
+        Window window = getWindow();
+        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(Color.TRANSPARENT);
+        window.setNavigationBarColor(Color.TRANSPARENT);
 
-                    // Cand tastatura apare, ultimul mesaj ramanea ascuns sub ea - fortam scroll la fund.
-                    if (tastatura.bottom > 0 && scrollMessages != null) {
-                        scrollMessages.post(() -> scrollMessages.fullScroll(NestedScrollView.FOCUS_DOWN));
-                    }
+        // Forțăm pictogramele de sistem să fie albe/închise
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            android.view.WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsAppearance(0, android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+            }
+        } else {
+            window.getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
+        }
 
-                    return insets;
-                });
+        // 2. PADDING PENTRU CONȚINUT (Fără bandă albă)
+        // Aplicăm padding-ul doar jos (pentru navigație/tastatură),
+        // dar lăsăm header-ul să urce sub status bar
+        View aiChatRoot = findViewById(R.id.aiChatRoot);
+        if (aiChatRoot != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(aiChatRoot, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                Insets tastatura = insets.getInsets(WindowInsetsCompat.Type.ime());
 
+                // Padding jos pentru tastatură și navigație, sus 0 pentru a fi transparent sub ceas
+                int paddingJos = Math.max(systemBars.bottom, tastatura.bottom);
+                v.setPadding(0, 0, 0, paddingJos);
+
+                if (tastatura.bottom > 0 && scrollMessages != null) {
+                    scrollMessages.post(() -> scrollMessages.fullScroll(NestedScrollView.FOCUS_DOWN));
+                }
+                return insets;
+            });
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.aiChatRoot), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets tastatura = insets.getInsets(WindowInsetsCompat.Type.ime());
+
+            // 1. Padding header-ul sus (pentru ceas)
+            View header = findViewById(R.id.header);
+            header.setPadding(header.getPaddingLeft(), systemBars.top + 16, header.getPaddingRight(), header.getPaddingBottom());
+
+            // 2. Padding inputBar jos (pentru navigație/tastatură)
+            View inputBar = findViewById(R.id.inputBar);
+            int paddingJos = Math.max(systemBars.bottom, tastatura.bottom);
+            inputBar.setPadding(inputBar.getPaddingLeft(), inputBar.getPaddingTop(), inputBar.getPaddingRight(), paddingJos + 12);
+
+            // 3. Scroll la ultimul mesaj
+            if (tastatura.bottom > 0 && scrollMessages != null) {
+                scrollMessages.post(() -> scrollMessages.fullScroll(NestedScrollView.FOCUS_DOWN));
+            }
+
+            return WindowInsetsCompat.CONSUMED;
+        });
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         View btnNewChat = findViewById(R.id.btnNewChat);

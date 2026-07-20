@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Voyaj</string>
+    <string name="app_name">Voya</string>
     <string name="step_label">STEP 2 · INTERESTS</string>
     <string name="step_one_of_two">1/2</string>
     <string name="step_two_of_two">2/2</string>

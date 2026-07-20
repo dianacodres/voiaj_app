@@ -1,8 +1,16 @@
 package com.example.mobile_app;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowInsetsController;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -17,156 +25,346 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class DiscoverActivity extends AppCompatActivity {
 
+    private static final String TAG = "DETALII_INCARCARE";
     private TripRepository tripRepository;
+    private LottieAnimationView splashOverlay;
+    private View overlayContainer;
+    private View mainContentContainer;
+
+    private boolean tripDataReady = false;
+    private boolean recommendationsReady = false;
+    private boolean greetingReady = false;
+    private boolean imagesReady = false;
+
+    private Trip pendingNextTrip = null;
+    private boolean pendingNoTrip = false;
+    private List<RecommendationEngine.CityMatch> pendingRanked = null;
+    private User pendingUser = null;
+
+    private final List<String> imagesToPreload = new ArrayList<>();
+
+    private long splashStartTime;
+    private static final long MIN_SPLASH_DURATION_MS = 2000;
+    private boolean isUnifiedSignupLoading = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate: Activitatea DiscoverActivity a pornit.");
 
-        // ── ACTIVARE TRANSPARENȚĂ STATUS BAR ──
+        // ── 1. EDGE TO EDGE NATIV ──
         EdgeToEdge.enable(this);
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            String lastScreen = AuthScreenPreference.getLastScreen(this);
+            Intent intent;
+
+            switch (lastScreen) {
+                case AuthScreenPreference.SCREEN_LOGIN:
+                    intent = new Intent(this, LoginActivity.class);
+                    break;
+                case AuthScreenPreference.SCREEN_SIGNUP:
+                    intent = new Intent(this, SignUpActivity.class);
+                    break;
+                default:
+                    intent = new Intent(this, MainActivity.class);
+                    break;
+            }
+
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_discover);
 
-        tripRepository = new TripRepository();
+        Window window = getWindow();
 
-        // ── GESTIONARE INSETS (EDGE-TO-EDGE) ──
+        // Eliminăm explicit flag-ul de Fullscreen care ascundea bara de status
+        window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+
+        // Setăm culorile de transparență curată
+        window.setStatusBarColor(Color.TRANSPARENT);
+        window.setNavigationBarColor(Color.TRANSPARENT);
+
+        // Configurăm iconițele (ceas, baterie) să fie ALBE (luminoase) peste gradientul închis
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+            }
+        } else {
+            // Curățăm flag-urile vechi de ascundere (SYSTEM_UI_FLAG_FULLSCREEN) și lăsăm doar layout-ul stabil sub bară
+            window.getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
+        }
+
+        isUnifiedSignupLoading = getIntent().getBooleanExtra("IS_UNIFIED_SIGNUP_LOADING", false);
+        if (isUnifiedSignupLoading) {
+            window.setWindowAnimations(0);
+            overridePendingTransition(0, 0);
+        }
+
+        NotificationHelper.createNotificationChannels(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1002);
+            }
+        }
+
+// 3. Programează verificarea zilnică a vacanțelor (rulat o singură dată)
+// ── CALCULARE DELAY INIȚIAL PENTRU ORA FIXĂ 12:08 AM ──
+        java.util.Calendar calendarCurent = java.util.Calendar.getInstance();
+        java.util.Calendar calendarTinta = java.util.Calendar.getInstance();
+
+// Setăm ora țintă la 12:08 AM (Ora 0, minutul 8)
+        calendarTinta.set(java.util.Calendar.HOUR_OF_DAY,10 );
+        calendarTinta.set(java.util.Calendar.MINUTE, 0);
+        calendarTinta.set(java.util.Calendar.SECOND, 0);
+        calendarTinta.set(java.util.Calendar.MILLISECOND, 0);
+
+// Dacă ora 12:08 AM a trecut deja pentru ziua de azi, programăm pentru mâine
+        if (calendarCurent.after(calendarTinta)) {
+            calendarTinta.add(java.util.Calendar.DAY_OF_MONTH, 1);
+        }
+
+// Calculăm diferența în milisecunde dintre acum și ora 12:08 AM
+        long delayInitialMs = calendarTinta.getTimeInMillis() - calendarCurent.getTimeInMillis();
+
+// Programează verificarea periodică (la fiecare 24 de ore) cu delay-ul calculat
+        androidx.work.PeriodicWorkRequest tripCheckRequest =
+                new androidx.work.PeriodicWorkRequest.Builder(TripNotificationWorker.class, 24, java.util.concurrent.TimeUnit.HOURS)
+                        .setInitialDelay(delayInitialMs, java.util.concurrent.TimeUnit.MILLISECONDS)
+                        .build();
+
+// Schimbat în REPLACE pentru a recalcula secundele și a preveni decalajele în timp
+        androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "TripNotificationWork",
+                androidx.work.ExistingPeriodicWorkPolicy.REPLACE,
+                tripCheckRequest
+        );
+
+// 4. Resetează alarma de inactivitate (se amână cu încă 2 zile de fiecare dată când deschide ecranul)
+        androidx.work.OneTimeWorkRequest inactivityRequest =
+                new androidx.work.OneTimeWorkRequest.Builder(InactivityWorker.class)
+                        .setInitialDelay(2, java.util.concurrent.TimeUnit.DAYS)
+                        .build();
+        androidx.work.WorkManager.getInstance(this).enqueueUniqueWork(
+                "InactivityWork",
+                androidx.work.ExistingWorkPolicy.REPLACE, // Înlocuiește vechea alarmă cu una proaspătă de 2 zile
+                inactivityRequest
+        );
+        tripRepository = new TripRepository();
+        splashOverlay = findViewById(R.id.splashOverlay);
+        overlayContainer = findViewById(R.id.splashOverlayContainer);
+        mainContentContainer = findViewById(R.id.mainContentContainer);
+
+        splashStartTime = System.currentTimeMillis();
+
         View rootLayout = findViewById(R.id.discoverRoot);
         if (rootLayout != null) {
             ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                // Păstrăm padding-ul tău inițial (doar pentru bottom, sau adaugă top/left/right după preferințe)
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                // Punem padding doar jos pentru bara de navigare, lăsând sus 0 ca să treacă sub ceas
+                v.setPadding(0, 0, 0, systemBars.bottom);
                 return insets;
             });
         }
 
-        // Navigare planificare călătorie
-        findViewById(R.id.btnPlanTrip).setOnClickListener(v -> {
-            startActivity(new Intent(DiscoverActivity.this, PlanTripActivity.class));
-        });
+        View headerView = findViewById(R.id.header);
+        if (headerView != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(headerView, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                int extraPaddingPx = (int) (20 * v.getResources().getDisplayMetrics().density);
+                v.setPadding(v.getPaddingLeft(), systemBars.top + extraPaddingPx, v.getPaddingRight(), v.getPaddingBottom());
+                return insets;
+            });
+        }
 
-        findViewById(R.id.btnAI).setOnClickListener(v -> {
-            startActivity(new Intent(DiscoverActivity.this, CityDetailActivity.class));
-        });
+        findViewById(R.id.btnPlanTrip).setOnClickListener(v -> startActivity(new Intent(DiscoverActivity.this, PlanTripActivity.class)));
+        findViewById(R.id.btnAI).setOnClickListener(v -> startActivity(new Intent(DiscoverActivity.this, CityDetailActivity.class)));
+        findViewById(R.id.searchBar).setOnClickListener(v -> startActivity(new Intent(DiscoverActivity.this, SearchActivity.class)));
 
-        findViewById(R.id.searchBar).setOnClickListener(v -> {
-            startActivity(new Intent(DiscoverActivity.this, SearchActivity.class));
-        });
-
-        // Navigare setări cont apăsând pe iconița/avatarul de sus
         TextView txtAvatar = findViewById(R.id.txtAvatar);
         if (txtAvatar != null) {
-            txtAvatar.setOnClickListener(v -> {
-                Intent intent = new Intent(DiscoverActivity.this, AccountSettingsActivity.class);
-                startActivity(intent);
-            });
+            txtAvatar.setOnClickListener(v -> startActivity(new Intent(DiscoverActivity.this, AccountSettingsActivity.class)));
         }
 
         TextView txtSeeAll = findViewById(R.id.txtSeeAll);
         if (txtSeeAll != null) {
-            txtSeeAll.setOnClickListener(v ->
-                    startActivity(new Intent(DiscoverActivity.this, RecommendedActivity.class)));
+            txtSeeAll.setOnClickListener(v -> startActivity(new Intent(DiscoverActivity.this, RecommendedActivity.class)));
         }
 
-        // ── INIȚIALIZARE BOTTOM NAVIGATION MENTALITATE TAB-URI ──
-        LinearLayout bottomNav = findViewById(R.id.bottomNav);
+        LinearLayout btnDiscover = findViewById(R.id.btnDiscover);
+        LinearLayout btnMap      = findViewById(R.id.btnMap);
+        LinearLayout btnWishlist = findViewById(R.id.btnWishlist);
+        LinearLayout btnAI       = findViewById(R.id.btnAI);
 
-        if (bottomNav != null) {
-            View btnNavDiscover = bottomNav.getChildAt(0); // Primul element: Discover (Curent)
-            View btnNavMap      = bottomNav.getChildAt(1); // Al doilea element: Map (Explore)
-            View btnNavWishlist = bottomNav.getChildAt(2); // Al treilea element: Wishlist (Journey)
-            View btnNavAi       = bottomNav.getChildAt(3); // Al patrulea element: AI
+        int turqColor = ContextCompat.getColor(this, R.color.light_turq_1);
+        int inactiveColor = Color.parseColor("#AAAAAA");
 
-            // 1. Discover devine activ (Turcoaz `@color/light_turq_1`)
-            if (btnNavDiscover instanceof LinearLayout) {
-                LinearLayout discoverLayout = (LinearLayout) btnNavDiscover;
-                ImageView imgDiscover = (ImageView) discoverLayout.getChildAt(0);
-                TextView txtDiscover = (TextView) discoverLayout.getChildAt(1);
-
-                int turqColor = ContextCompat.getColor(this, R.color.light_turq_1);
-                if (imgDiscover != null) imgDiscover.setColorFilter(turqColor);
-                if (txtDiscover != null) {
-                    txtDiscover.setTextColor(turqColor);
-                    txtDiscover.setTypeface(null, android.graphics.Typeface.BOLD);
-                }
-            }
-
-            // 2. Map devine inactiv (Gri) în caz că preia stări reziduale din XML
-            if (btnNavMap instanceof LinearLayout) {
-                LinearLayout mapLayout = (LinearLayout) btnNavMap;
-                ImageView imgMap = (ImageView) mapLayout.getChildAt(0);
-                TextView txtMap = (TextView) mapLayout.getChildAt(1);
-                if (imgMap != null) imgMap.setColorFilter(ContextCompat.getColor(this, android.R.color.darker_gray));
-                if (txtMap != null) {
-                    txtMap.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
-                    txtMap.setTypeface(null, android.graphics.Typeface.NORMAL);
-                }
-            }
-
-            // ── ASCULTĂTORI CLICK PENTRU SCHIMBAREA ECRANELOR ──
-            if (btnNavMap != null) {
-                btnNavMap.setOnClickListener(v -> {
-                    Intent intent = new Intent(DiscoverActivity.this, ExploreActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                    startActivity(intent);
-                    overridePendingTransition(0, 0);
-                });
-            }
-
-            if (btnNavWishlist != null) {
-                btnNavWishlist.setOnClickListener(v -> {
-                    Intent intent = new Intent(DiscoverActivity.this, JourneyActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                    startActivity(intent);
-                    overridePendingTransition(0, 0);
-                });
-            }
-
-            if (btnNavAi != null) {
-                btnNavAi.setOnClickListener(v -> {
-                    Intent intent = new Intent(DiscoverActivity.this, AIHubActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                    startActivity(intent);
-                    overridePendingTransition(0, 0);
-                });
+        if (btnDiscover != null) {
+            ImageView imgDiscover = (ImageView) btnDiscover.getChildAt(0);
+            TextView txtDiscover = (TextView) btnDiscover.getChildAt(1);
+            if (imgDiscover != null) imgDiscover.setColorFilter(turqColor);
+            if (txtDiscover != null) {
+                txtDiscover.setTextColor(turqColor);
+                txtDiscover.setTypeface(null, android.graphics.Typeface.BOLD);
             }
         }
-    }
 
-    /**
-     * onResume, nu onCreate: daca navigarea intre taburi reordoneaza aceeasi
-     * instanta in fata, onCreate nu se mai ruleaza, dar onResume da - asa
-     * cardul "Your next trip" ramane mereu actualizat.
-     */
-    @Override
-    protected void onResume() {
-        super.onResume();
+        resetTabVisuals(btnMap, inactiveColor);
+        resetTabVisuals(btnWishlist, inactiveColor);
+        resetTabVisuals(btnAI, inactiveColor);
+
+        if (btnMap != null) {
+            btnMap.setOnClickListener(v -> {
+                Intent intent = new Intent(DiscoverActivity.this, ExploreActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+            });
+        }
+
+        if (btnWishlist != null) {
+            btnWishlist.setOnClickListener(v -> {
+                Intent intent = new Intent(DiscoverActivity.this, JourneyActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+            });
+        }
+
+        if (btnAI != null) {
+            btnAI.setOnClickListener(v -> {
+                Intent intent = new Intent(DiscoverActivity.this, AIHubActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+            });
+        }
+
         loadNextTrip();
         loadRecommendations();
         loadUserGreeting();
     }
 
-    /**
-     * Cauta printre savedTrips cel cu status "planned", cu data reala (nu draft flexibil
-     * fara data) si cu countdown-ul cel mai mic (cea mai apropiata calatorie viitoare).
-     * Daca nu exista niciuna, ascunde toata sectiunea "Your next trip".
-     */
+    private void resetTabVisuals(LinearLayout tabLayout, int color) {
+        if (tabLayout != null && tabLayout.getChildCount() >= 2) {
+            ImageView img = (ImageView) tabLayout.getChildAt(0);
+            TextView txt = (TextView) tabLayout.getChildAt(1);
+            if (img != null) img.setColorFilter(color);
+            if (txt != null) {
+                txt.setTextColor(color);
+                txt.setTypeface(null, android.graphics.Typeface.NORMAL);
+            }
+        }
+    }
+
+    private void checkAllReadyAndReveal() {
+        if (!tripDataReady || !recommendationsReady || !greetingReady) return;
+
+        if (!imagesReady) {
+            preloadRemainingImages();
+            return;
+        }
+
+        if (pendingNoTrip) {
+            showEmptyTripState();
+        } else if (pendingNextTrip != null) {
+            bindNextTrip(pendingNextTrip);
+        }
+
+        if (pendingRanked != null) {
+            bindTopRecommendations(pendingRanked);
+        }
+
+        if (pendingUser != null) {
+            bindGreeting(pendingUser);
+        }
+
+        if (mainContentContainer != null) {
+            mainContentContainer.setVisibility(View.VISIBLE);
+        }
+
+        if (overlayContainer != null) {
+            long remainingDelay = 0;
+
+            if (!isUnifiedSignupLoading) {
+                long elapsed = System.currentTimeMillis() - splashStartTime;
+                remainingDelay = Math.max(0, MIN_SPLASH_DURATION_MS - elapsed);
+            }
+
+            overlayContainer.postDelayed(() -> {
+                overlayContainer.animate()
+                        .alpha(0f)
+                        .setDuration(400)
+                        .withEndAction(() -> overlayContainer.setVisibility(View.GONE))
+                        .start();
+            }, remainingDelay);
+        }
+    }
+
+    private void preloadRemainingImages() {
+        if (imagesToPreload.isEmpty()) {
+            imagesReady = true;
+            checkAllReadyAndReveal();
+            return;
+        }
+
+        final int[] remaining = { imagesToPreload.size() };
+        for (String url : imagesToPreload) {
+            com.bumptech.glide.Glide.with(this)
+                    .load(url)
+                    .listener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable com.bumptech.glide.load.engine.GlideException e, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, boolean isFirstResource) {
+                            done();
+                            return false;
+                        }
+                        @Override
+                        public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, com.bumptech.glide.load.DataSource dataSource, boolean isFirstResource) {
+                            done();
+                            return false;
+                        }
+                        private void done() {
+                            remaining[0]--;
+                            if (remaining[0] <= 0) {
+                                imagesReady = true;
+                                checkAllReadyAndReveal();
+                            }
+                        }
+                    })
+                    .preload();
+        }
+    }
+
     private void loadNextTrip() {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser == null) return;
+        if (firebaseUser == null) {
+            Log.e(TAG, "loadNextTrip: FirebaseUser este null!");
+            pendingNoTrip = true;
+            tripDataReady = true;
+            checkAllReadyAndReveal();
+            return;
+        }
 
-        // Mutam automat trips-urile expirate inainte de a cauta cea mai apropiata calatorie,
-        // ca sa nu ramana blocate ca "planned" doar pentru ca userul nu a deschis Wishlist.
         tripRepository.autoCompleteExpiredTrips(firebaseUser.getUid(), new TripRepository.SimpleCallback() {
             @Override
             public void onSuccess() {
@@ -175,6 +373,7 @@ public class DiscoverActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
+                Log.e(TAG, "autoCompleteExpiredTrips a dat fail: " + errorMessage);
                 fetchAndBindNextTrip(firebaseUser.getUid());
             }
         });
@@ -184,34 +383,70 @@ public class DiscoverActivity extends AppCompatActivity {
         tripRepository.getSavedTrips(uid, new TripRepository.TripListCallback() {
             @Override
             public void onSuccess(List<Trip> savedTrips) {
-                Trip closest = null;
+                Trip closestTrip = null;
                 for (Trip trip : savedTrips) {
                     if (!"planned".equals(trip.getStatus())) continue;
-                    if (trip.getStartDate() == null) continue; // draft flexibil, fara data - ignorat
-                    if (trip.hasEnded()) continue; // calatoria s-a terminat deja efectiv
+                    if (trip.getStartDate() == null) continue;
+                    if (trip.hasEnded()) continue;
 
                     trip.recalculateCountdown();
 
-                    if (closest == null || trip.getDaysUntilTrip() < closest.getDaysUntilTrip()) {
-                        closest = trip;
+                    if (closestTrip == null || trip.getDaysUntilTrip() < closestTrip.getDaysUntilTrip()) {
+                        closestTrip = trip;
                     }
                 }
 
-                if (closest == null) {
-                    showEmptyTripState();
+                if (closestTrip == null) {
+                    pendingNoTrip = true;
+                    tripDataReady = true;
+                    checkAllReadyAndReveal();
                 } else {
-                    bindNextTrip(closest);
+                    final Trip finalClosest = closestTrip;
+
+                    if (finalClosest.getImageUrl() == null || finalClosest.getImageUrl().trim().isEmpty() || "null".equals(finalClosest.getImageUrl())) {
+                        CityRepository cityRepository = new CityRepository();
+                        cityRepository.getAllCities(new CityRepository.CityListCallback() {
+                            @Override
+                            public void onSuccess(List<City> cities) {
+                                for (City city : cities) {
+                                    if (city.getId() != null && city.getId().equalsIgnoreCase(finalClosest.getCityId())) {
+                                        finalClosest.setImageUrl(city.getImageUrl());
+                                        break;
+                                    }
+                                }
+                                finalizeNextTrip(finalClosest);
+                            }
+
+                            @Override
+                            public void onError(String errorMessage) {
+                                finalizeNextTrip(finalClosest);
+                            }
+                        });
+                    } else {
+                        finalizeNextTrip(finalClosest);
+                    }
                 }
             }
 
             @Override
             public void onError(String errorMessage) {
-                showEmptyTripState();
+                Log.e(TAG, "getSavedTrips eroare: " + errorMessage);
+                pendingNoTrip = true;
+                tripDataReady = true;
+                checkAllReadyAndReveal();
             }
         });
     }
 
-    /** Cardul alb ramane vizibil mereu; doar arata mesajul de incurajare in loc de detalii de trip. */
+    private void finalizeNextTrip(Trip trip) {
+        pendingNextTrip = trip;
+        if (trip.getImageUrl() != null && trip.getImageUrl().startsWith("http")) {
+            imagesToPreload.add(trip.getImageUrl());
+        }
+        tripDataReady = true;
+        checkAllReadyAndReveal();
+    }
+
     private void showEmptyTripState() {
         setTripContentVisibility(View.GONE);
         View placeholder = findViewById(R.id.layoutNoTripPlaceholder);
@@ -268,18 +503,51 @@ public class DiscoverActivity extends AppCompatActivity {
         }
 
         if (imgTrip != null) {
-            int imageResId = getResources().getIdentifier(trip.getCityId(), "drawable", getPackageName());
-            if (imageResId == 0) imageResId = R.drawable.rome;
-            imgTrip.setImageResource(imageResId);
+            String rawUrl = trip.getImageUrl();
+
+            if (rawUrl != null && (rawUrl.startsWith("http://") || rawUrl.startsWith("https://"))) {
+                com.bumptech.glide.Glide.with(this)
+                        .load(rawUrl)
+                        .placeholder(R.drawable.rome)
+                        .error(R.drawable.rome)
+                        .into(imgTrip);
+            } else {
+                int imageResId = 0;
+
+                if (rawUrl != null && !rawUrl.trim().isEmpty()) {
+                    String cleanName = rawUrl.replace(".jpg", "").replace(".png", "").trim().toLowerCase();
+                    imageResId = getResources().getIdentifier(cleanName, "drawable", getPackageName());
+                }
+
+                if (imageResId == 0 && trip.getCityId() != null) {
+                    String fallbackId = trip.getCityId().trim().toLowerCase();
+                    imageResId = getResources().getIdentifier(fallbackId, "drawable", getPackageName());
+                }
+
+                if (imageResId == 0) {
+                    imageResId = R.drawable.rome;
+                }
+
+                com.bumptech.glide.Glide.with(this)
+                        .load(imageResId)
+                        .into(imgTrip);
+            }
         }
 
         if (progressTrip != null) {
-            // Aproximare: consideram 30 de zile ca "punct de start" al planificarii tipice.
-            // Nu stocam data la care a fost creat trip-ul, deci nu putem calcula exact
-            // cat % din asteptare a trecut - e doar o reprezentare vizuala rezonabila.
             int daysUntil = trip.getDaysUntilTrip();
             int progress = (int) Math.max(0, Math.min(100, 100 - (daysUntil * 100 / 30.0)));
             progressTrip.setProgress(progress);
+        }
+        CardView cardNextTrip = findViewById(R.id.cardNextTrip);
+        if (cardNextTrip != null) {
+            cardNextTrip.setOnClickListener(v -> {
+                Intent intent = new Intent(DiscoverActivity.this, ExploreActivity.class);
+                intent.putExtra("cityId", trip.getCityId());
+                intent.putExtra("cityName", trip.getCityName());
+                intent.putExtra("isDraft", "draft".equals(trip.getStatus()));
+                startActivity(intent);
+            });
         }
     }
 
@@ -300,13 +568,13 @@ public class DiscoverActivity extends AppCompatActivity {
         return Character.toUpperCase(text.charAt(0)) + text.substring(1);
     }
 
-    /**
-     * Ia interesele userului curent + toate orasele, calculeaza % match pentru fiecare
-     * (RecommendationEngine) si afiseaza primele 2 in cardurile "Recommended for you".
-     */
     private void loadRecommendations() {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser == null) return;
+        if (firebaseUser == null) {
+            recommendationsReady = true;
+            checkAllReadyAndReveal();
+            return;
+        }
 
         AuthRepository authRepository = new AuthRepository();
         authRepository.getCurrentUserProfile(new AuthRepository.AuthCallback() {
@@ -318,19 +586,33 @@ public class DiscoverActivity extends AppCompatActivity {
                     public void onSuccess(List<City> cities) {
                         List<RecommendationEngine.CityMatch> ranked =
                                 RecommendationEngine.rankCities(user.getInterests(), cities);
-                        bindTopRecommendations(ranked);
+                        pendingRanked = ranked;
+
+                        for (int i = 0; i < Math.min(2, ranked.size()); i++) {
+                            String url = ranked.get(i).city.getImageUrl();
+                            if (url != null && url.startsWith("http")) {
+                                imagesToPreload.add(url);
+                            }
+                        }
+
+                        recommendationsReady = true;
+                        checkAllReadyAndReveal();
                     }
 
                     @Override
                     public void onError(String errorMessage) {
-                        // Lasam cardurile cum sunt (fallback static din XML), fara sa stricam UI-ul
+                        Log.e(TAG, "getAllCities eroare: " + errorMessage);
+                        recommendationsReady = true;
+                        checkAllReadyAndReveal();
                     }
                 });
             }
 
             @Override
             public void onError(String errorMessage) {
-                // La fel, fallback silentios
+                Log.e(TAG, "getCurrentUserProfile eroare: " + errorMessage);
+                recommendationsReady = true;
+                checkAllReadyAndReveal();
             }
         });
     }
@@ -342,6 +624,7 @@ public class DiscoverActivity extends AppCompatActivity {
         TextView txtCityName1 = findViewById(R.id.txtCityName1);
         TextView txtRating1 = findViewById(R.id.txtRating1);
         TextView txtMatch1 = findViewById(R.id.txtMatch1);
+
         bindRecommendationCard(ranked.get(0), imgRec1, txtCityName1, txtRating1, txtMatch1);
 
         if (ranked.size() > 1) {
@@ -365,37 +648,82 @@ public class DiscoverActivity extends AppCompatActivity {
             matchText.setText(capitalize(city.getCountryId()) + " · " + match.matchPercent + "% match");
         }
 
+        View.OnClickListener openDetailsListener = v -> {
+            Intent intent = new Intent(DiscoverActivity.this, CityDetailActivity.class);
+            intent.putExtra("cityId", city.getId());
+            intent.putExtra("countryId", city.getCountryId());
+            startActivity(intent);
+        };
+
+        if (img != null) img.setOnClickListener(openDetailsListener);
+        if (name != null) name.setOnClickListener(openDetailsListener);
+
         if (img != null) {
-            int imageResId = getResources().getIdentifier(city.getId(), "drawable", getPackageName());
-            if (imageResId == 0) imageResId = R.drawable.rome;
-            img.setImageResource(imageResId);
+            String rawUrl = city.getImageUrl();
+
+            if (rawUrl != null && (rawUrl.startsWith("http://") || rawUrl.startsWith("https://"))) {
+                com.bumptech.glide.Glide.with(this)
+                        .load(rawUrl)
+                        .placeholder(R.drawable.rome)
+                        .error(R.drawable.rome)
+                        .into(img);
+            } else {
+                int imageResId = 0;
+                if (rawUrl != null && !rawUrl.trim().isEmpty()) {
+                    String cleanName = rawUrl.replace(".jpg", "").replace(".png", "").trim().toLowerCase();
+                    imageResId = getResources().getIdentifier(cleanName, "drawable", getPackageName());
+                }
+
+                if (imageResId == 0 && city.getId() != null) {
+                    String fallbackId = city.getId().trim().toLowerCase();
+                    imageResId = getResources().getIdentifier(fallbackId, "drawable", getPackageName());
+                }
+
+                if (imageResId == 0) {
+                    imageResId = R.drawable.rome;
+                }
+
+                com.bumptech.glide.Glide.with(this)
+                        .load(imageResId)
+                        .into(img);
+            }
         }
     }
 
-    /** Incarca numele real al userului logat, pune prenumele in "Hi, {prenume}" si initialele in bulina. */
+    private void bindGreeting(User user) {
+        TextView txtHi = findViewById(R.id.txtHi);
+        if (txtHi != null && user.getName() != null && !user.getName().isEmpty()) {
+            String firstName = user.getName().trim().split("\\s+")[0];
+            txtHi.setText("Hi, " + firstName + " 👋");
+        }
+        TextView txtAvatar = findViewById(R.id.txtAvatar);
+        if (txtAvatar != null && user.getAvatarInitials() != null) {
+            txtAvatar.setText(user.getAvatarInitials());
+        }
+    }
+
     private void loadUserGreeting() {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser == null) return;
+        if (firebaseUser == null) {
+            greetingReady = true;
+            checkAllReadyAndReveal();
+            return;
+        }
 
         AuthRepository authRepository = new AuthRepository();
         authRepository.getCurrentUserProfile(new AuthRepository.AuthCallback() {
             @Override
             public void onSuccess(User user) {
-                TextView txtHi = findViewById(R.id.txtHi);
-                if (txtHi != null && user.getName() != null && !user.getName().isEmpty()) {
-                    String firstName = user.getName().trim().split("\\s+")[0];
-                    txtHi.setText("Hi, " + firstName + " 👋");
-                }
-
-                TextView txtAvatar = findViewById(R.id.txtAvatar);
-                if (txtAvatar != null && user.getAvatarInitials() != null) {
-                    txtAvatar.setText(user.getAvatarInitials());
-                }
+                pendingUser = user;
+                greetingReady = true;
+                checkAllReadyAndReveal();
             }
 
             @Override
             public void onError(String errorMessage) {
-                // Lasam textul static din XML daca nu putem incarca profilul
+                Log.e(TAG, "loadUserGreeting eroare: " + errorMessage);
+                greetingReady = true;
+                checkAllReadyAndReveal();
             }
         });
     }

@@ -68,4 +68,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="@color/bg">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/loadingAnimation"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:layout_gravity="center"
+            app:lottie_rawRes="@raw/loading_screen"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true" />
+    </FrameLayout>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

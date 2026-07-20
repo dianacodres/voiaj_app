@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="30dp"
         android:text="Your journeys"
         android:textColor="@color/navy_blue_1"
         android:textSize="28sp"

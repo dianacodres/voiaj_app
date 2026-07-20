@@ -36,6 +36,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
+        AuthScreenPreference.saveLastScreen(this, AuthScreenPreference.SCREEN_LOGIN); //eroare dacaiesi si intri din nou in aplicatie fara cont retinut
 
         authRepository = new AuthRepository();
         googleSignInClient = authRepository.getGoogleSignInClient(this);
@@ -109,7 +110,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void showResetPasswordDialog() {
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog =
-                new com.google.android.material.bottomsheet.BottomSheetDialog(this, R.style.BottomSheetStyle);
+                new com.google.android.material.bottomsheet.BottomSheetDialog(this);
 
         View sheetView = getLayoutInflater().inflate(R.layout.layout_bottom_sheet_forgot_password, null);
         bottomSheetDialog.setContentView(sheetView);

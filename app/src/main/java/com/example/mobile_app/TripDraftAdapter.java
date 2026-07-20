@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-/** Adapter pentru cardurile mici de Drafts, afisate orizontal (glisabile). */
 public class TripDraftAdapter extends RecyclerView.Adapter<TripDraftAdapter.DraftViewHolder> {
 
     interface OnDraftClick {
@@ -49,12 +48,43 @@ public class TripDraftAdapter extends RecyclerView.Adapter<TripDraftAdapter.Draf
                 ? trip.getDaysCount() + "-" + dayLabel + " idea"
                 : trip.getDaysCount() + " " + dayLabel);
 
-        int imageResId = holder.itemView.getResources()
-                .getIdentifier(trip.getCityId(), "drawable", holder.itemView.getContext().getPackageName());
-        if (imageResId == 0) {
-            imageResId = R.drawable.interests_prelogin_img_1;
+        // ── MODIFICAT RADICAL: Încărcare instantanee prin Glide pentru secțiunea de Drafts ──
+        if (holder.imgDraft != null) {
+            String imgName = trip.getImageUrl();
+
+            if (imgName != null && (imgName.startsWith("http://") || imgName.startsWith("https://"))) {
+                // Pas A: Imaginea este salvată ca URL web din Firestore
+                com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                        .load(imgName)
+                        .dontAnimate()
+                        .placeholder(R.drawable.rome)
+                        .error(R.drawable.rome)
+                        .into(holder.imgDraft);
+            } else {
+                // Pas B: Căutare resursă în structura internă a folderului drawable
+                int imageResId = 0;
+                if (imgName != null && !imgName.trim().isEmpty()) {
+                    imgName = imgName.replace(".jpg", "").replace(".png", "").trim().toLowerCase();
+                    imageResId = holder.itemView.getResources()
+                            .getIdentifier(imgName, "drawable", holder.itemView.getContext().getPackageName());
+                }
+
+                if (imageResId == 0 && trip.getCityId() != null) {
+                    String fallbackId = trip.getCityId().trim().toLowerCase();
+                    imageResId = holder.itemView.getResources()
+                            .getIdentifier(fallbackId, "drawable", holder.itemView.getContext().getPackageName());
+                }
+
+                if (imageResId == 0) {
+                    imageResId = R.drawable.rome;
+                }
+
+                com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                        .load(imageResId)
+                        .dontAnimate()
+                        .into(holder.imgDraft);
+            }
         }
-        holder.imgDraft.setImageResource(imageResId);
 
         holder.itemView.setOnLongClickListener(v -> {
             if (longClickListener != null) longClickListener.onLongClick(trip);

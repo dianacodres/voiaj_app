@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/recommendedRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -22,7 +23,8 @@
             android:padding="8dp"
             android:src="@drawable/ic_arrow_forward"
             android:rotation="180"
-            app:tint="@color/navy_blue_1" />
+            app:tint="@color/navy_blue_1"
+            android:contentDescription="Back" />
 
         <TextView
             android:id="@+id/txtTitleAll"
@@ -36,9 +38,25 @@
             android:fontFamily="sans-serif-black" />
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvAllItems"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvAllItems"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <TextView
+            android:id="@+id/txtNoItemsAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="We couldn't find any items!"
+            android:textColor="@color/navy_blue_2"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium"
+            android:visibility="gone" />
+    </FrameLayout>
 
 </LinearLayout>

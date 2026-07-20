@@ -30,19 +30,19 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Logo -->
-    <ImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imgLogo"
-        android:layout_width="140dp"
-        android:layout_height="140dp"
-        android:background="@drawable/bg_logo_btn"
-        android:padding="20dp"
-        android:src="@drawable/logo1"
+        android:layout_width="180dp"
+        android:layout_height="180dp"
+        android:padding="5dp"
+        android:layout_marginTop="120dp"
+        android:src="@drawable/ic_foreground"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/btnStartExploring"
+        app:layout_constraintBottom_toTopOf="@id/txtTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintVertical_bias="0.35" />
+        app:layout_constraintVertical_bias="0.85" />
 
     <!-- Titlu Voiaj -->
     <TextView
@@ -50,7 +50,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="Voiaj"
+        android:text="Voya"
         android:textColor="@color/white"
         android:textSize="40sp"
         android:textStyle="bold"

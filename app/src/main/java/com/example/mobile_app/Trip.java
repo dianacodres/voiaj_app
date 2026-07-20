@@ -8,11 +8,8 @@ import java.util.Date;
 
 /**
  * Model comun pentru documentele din:
- *   users/{uid}/completedTrips/{tripId}
- *   users/{uid}/savedTrips/{tripId}
- *
- * Campurile status, countdownActive, daysUntilTrip sunt relevante
- * doar pentru savedTrips - raman null/false pentru completedTrips.
+ * users/{uid}/completedTrips/{tripId}
+ * users/{uid}/savedTrips/{tripId}
  */
 public class Trip {
 
@@ -22,15 +19,15 @@ public class Trip {
     private String cityId;
     private String cityName;
     private String countryId;
+    private String imageUrl;
 
-    private String startDate; // format: "yyyy-MM-dd", ex "2024-05-14"
+    private String startDate;
     private String endDate;
     private int daysCount;
 
-    // --- specifice savedTrips ---
-    private String status;          // "planned" sau "draft"
+    private String status;
     private boolean countdownActive;
-    private int daysUntilTrip;      // recalculat manual la fiecare update, vezi recalculateCountdown()
+    private int daysUntilTrip;
 
     @ServerTimestamp
     private Date createdAt;
@@ -40,7 +37,6 @@ public class Trip {
     public Trip() {
     }
 
-    // Constructor pentru completedTrips
     public static Trip createCompleted(String cityId, String cityName, String countryId,
                                        String startDate, String endDate, int daysCount) {
         Trip trip = new Trip();
@@ -53,7 +49,6 @@ public class Trip {
         return trip;
     }
 
-    // Constructor pentru savedTrips
     public static Trip createSaved(String cityId, String cityName, String countryId,
                                    String startDate, String endDate, int daysCount,
                                    String status) {
@@ -63,11 +58,6 @@ public class Trip {
         return trip;
     }
 
-    /**
-     * Recalculeaza daysUntilTrip si countdownActive pe baza startDate.
-     * Se apeleaza manual (in ViewModel/Adapter, la afisare), NU se bazeaza
-     * pe o valoare stocata static in Firestore, ca sa nu ramana desincronizata.
-     */
     @Exclude
     public void recalculateCountdown() {
         if (startDate == null) {
@@ -79,9 +69,6 @@ public class Trip {
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
             Date start = sdf.parse(startDate);
 
-            // Normalizam ambele date la miezul noptii, ca diferenta sa fie in zile
-            // calendaristice intregi, nu in ore brute (evita sa arate "0 days" cu cateva
-            // ore inainte de miezul noptii zilei premergatoare plecarii).
             java.util.Calendar startCal = java.util.Calendar.getInstance();
             startCal.setTime(start);
             startCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
@@ -105,7 +92,6 @@ public class Trip {
         }
     }
 
-    /** Verifica daca ESTE chiar acum in perioada calatoriei (intre startDate si endDate, inclusiv). */
     @Exclude
     public boolean isOngoing() {
         if (startDate == null || endDate == null) return false;
@@ -125,12 +111,6 @@ public class Trip {
         }
     }
 
-    /**
-     * Verifica daca a trecut complet ultima zi a calatoriei (endDate).
-     * Diferit de countdownActive/daysUntilTrip, care doar arata "cat mai e pana pleci" -
-     * asta raspunde la "s-a terminat efectiv vacanta?", folosit pentru mutarea automata
-     * in completedTrips abia dupa ultima zi, nu de la prima zi de calatorie.
-     */
     @Exclude
     public boolean hasEnded() {
         if (endDate == null) return false;
@@ -148,101 +128,36 @@ public class Trip {
         }
     }
 
-    // --- Getters & Setters ---
-
-    public String getTripId() {
-        return tripId;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    public void setTripId(String tripId) {
-        this.tripId = tripId;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
-    public String getCityId() {
-        return cityId;
-    }
-
-    public void setCityId(String cityId) {
-        this.cityId = cityId;
-    }
-
-    public String getCityName() {
-        return cityName;
-    }
-
-    public void setCityName(String cityName) {
-        this.cityName = cityName;
-    }
-
-    public String getCountryId() {
-        return countryId;
-    }
-
-    public void setCountryId(String countryId) {
-        this.countryId = countryId;
-    }
-
-    public String getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(String startDate) {
-        this.startDate = startDate;
-    }
-
-    public String getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(String endDate) {
-        this.endDate = endDate;
-    }
-
-    public int getDaysCount() {
-        return daysCount;
-    }
-
-    public void setDaysCount(int daysCount) {
-        this.daysCount = daysCount;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public boolean isCountdownActive() {
-        return countdownActive;
-    }
-
-    public void setCountdownActive(boolean countdownActive) {
-        this.countdownActive = countdownActive;
-    }
-
-    public int getDaysUntilTrip() {
-        return daysUntilTrip;
-    }
-
-    public void setDaysUntilTrip(int daysUntilTrip) {
-        this.daysUntilTrip = daysUntilTrip;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public java.util.List<ItineraryItem> getItinerary() {
-        return itinerary;
-    }
-
-    public void setItinerary(java.util.List<ItineraryItem> itinerary) {
-        this.itinerary = itinerary;
-    }
+    public String getTripId() { return tripId; }
+    public void setTripId(String tripId) { this.tripId = tripId; }
+    public String getCityId() { return cityId; }
+    public void setCityId(String cityId) { this.cityId = cityId; }
+    public String getCityName() { return cityName; }
+    public void setCityName(String cityName) { this.cityName = cityName; }
+    public String getCountryId() { return countryId; }
+    public void setCountryId(String countryId) { this.countryId = countryId; }
+    public String getStartDate() { return startDate; }
+    public void setStartDate(String startDate) { this.startDate = startDate; }
+    public String getEndDate() { return endDate; }
+    public void setEndDate(String endDate) { this.endDate = endDate; }
+    public int getDaysCount() { return daysCount; }
+    public void setDaysCount(int daysCount) { this.daysCount = daysCount; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public boolean isCountdownActive() { return countdownActive; }
+    public void setCountdownActive(boolean countdownActive) { this.countdownActive = countdownActive; }
+    public int getDaysUntilTrip() { return daysUntilTrip; }
+    public void setDaysUntilTrip(int daysUntilTrip) { this.daysUntilTrip = daysUntilTrip; }
+    public Date getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    public java.util.List<ItineraryItem> getItinerary() { return itinerary; }
+    public void setItinerary(java.util.List<ItineraryItem> itinerary) { this.itinerary = itinerary; }
 }

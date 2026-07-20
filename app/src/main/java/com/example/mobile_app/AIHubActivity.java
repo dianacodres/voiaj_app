@@ -1,8 +1,10 @@
 package com.example.mobile_app;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -33,12 +35,41 @@ public class AIHubActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_aihub);
 
-        ViewCompat.setOnApplyWindowInsetsListener(
-                findViewById(R.id.aiHubRoot), (v, insets) -> {
-                    Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-                    return insets;
-                });
+        Window window = getWindow();
+        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(Color.TRANSPARENT);
+        window.setNavigationBarColor(Color.TRANSPARENT);
+
+        // Forțăm iconițele de sistem să fie albe (sau închise, în funcție de fundalul tău)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            android.view.WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                // Setează 0 pentru iconițe albe
+                controller.setSystemBarsAppearance(0, android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+            }
+        } else {
+            window.getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
+        }
+
+        // 2. PADDING UNITAR (Lăsăm conținutul să urce sub status bar)
+        View root = findViewById(R.id.aiHubRoot);
+        if (root != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+                // Padding jos pentru navigare, restul conținutului urcă sub ceas
+                v.setPadding(0, 0, 0, systemBars.bottom);
+
+                // Dacă ai un header cu ID-ul "header" în XML, aplică padding-ul acolo ca să nu fie textul sub ceas
+                // View header = findViewById(R.id.header);
+                // if (header != null) header.setPadding(0, systemBars.top, 0, 0);
+
+                return insets;
+            });
+        }
 
         findViewById(R.id.btnNewConversation).setOnClickListener(v -> openChatAskAnything());
 

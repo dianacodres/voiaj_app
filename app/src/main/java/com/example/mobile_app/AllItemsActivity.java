@@ -1,6 +1,7 @@
 package com.example.mobile_app;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -15,10 +16,10 @@ public class AllItemsActivity extends AppCompatActivity {
 
     private RecyclerView rvAllItems;
     private TextView txtTitleAll;
+    private TextView txtNoItemsAll;
     private FirebaseFirestore db;
     private String categoryType;
 
-    // Variabile noi pentru a ști din ce oraș să luăm datele
     private String currentCountryId;
     private String currentCityId;
 
@@ -33,6 +34,7 @@ public class AllItemsActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         rvAllItems = findViewById(R.id.rvAllItems);
         txtTitleAll = findViewById(R.id.txtTitleAll);
+        txtNoItemsAll = findViewById(R.id.txtNoItemsAll);
 
         rvAllItems.setLayoutManager(new LinearLayoutManager(this));
         poiList = new ArrayList<>();
@@ -43,12 +45,9 @@ public class AllItemsActivity extends AppCompatActivity {
         findViewById(R.id.btnBackAll).setOnClickListener(v -> finish());
 
         categoryType = getIntent().getStringExtra("CATEGORY_TYPE");
-
-        // Preluăm țara și orașul primite de la ecranul de detalii
         currentCountryId = getIntent().getStringExtra("countryId");
         currentCityId = getIntent().getStringExtra("cityId");
 
-        // Fallback în caz că datele lipsesc dintr-un motiv oarecare
         if (currentCountryId == null) currentCountryId = "italy";
         if (currentCityId == null) currentCityId = "rome";
 
@@ -63,7 +62,6 @@ public class AllItemsActivity extends AppCompatActivity {
     }
 
     private void loadDataFromFirebase() {
-        // Înlocuim "italy" și "rome" cu variabilele dinamice primite!
         db.collection("countries").document(currentCountryId)
                 .collection("cities").document(currentCityId)
                 .collection(categoryType)
@@ -73,7 +71,7 @@ public class AllItemsActivity extends AppCompatActivity {
                         poiList.clear();
 
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            PoiRow row = null;
+                            PoiRow row;
 
                             if (categoryType.equals("attractions")) {
                                 Attraction attraction = document.toObject(Attraction.class);
@@ -89,12 +87,34 @@ public class AllItemsActivity extends AppCompatActivity {
                                 row = PoiRow.fromRestaurant(restaurant);
                             }
 
-                            if (row != null) {
-                                poiList.add(row);
+                            poiList.add(row);
+                        }
+
+                        if (poiList.isEmpty()) {
+                            rvAllItems.setVisibility(View.GONE);
+                            if (txtNoItemsAll != null) {
+                                txtNoItemsAll.setVisibility(View.VISIBLE);
+                                if (categoryType.equals("attractions")) {
+                                    txtNoItemsAll.setText("We couldn't find any attractions!");
+                                } else {
+                                    txtNoItemsAll.setText("We couldn't find any restaurants!");
+                                }
+                            }
+                        } else {
+                            rvAllItems.setVisibility(View.VISIBLE);
+                            if (txtNoItemsAll != null) {
+                                txtNoItemsAll.setVisibility(View.GONE);
                             }
                         }
 
-                        adapter.notifyDataSetChanged();
+                        adapter.notifyItemRangeChanged(0, poiList.size());
+                    } else {
+                        rvAllItems.setVisibility(View.GONE);
+                        if (txtNoItemsAll != null) {
+                            txtNoItemsAll.setVisibility(View.VISIBLE);
+                            txtNoItemsAll.setText(categoryType.equals("attractions") ?
+                                    "We couldn't find any attractions!" : "We couldn't find any restaurants!");
+                        }
                     }
                 });
     }

@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:background="@color/bg">
 
-    <!-- AppBarLayout cu imagine mare -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -25,7 +24,8 @@
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 android:src="@drawable/rome"
-                app:layout_collapseMode="parallax" />
+                app:layout_collapseMode="parallax"
+                android:contentDescription="City image" />
 
             <View
                 android:layout_width="match_parent"
@@ -103,7 +103,8 @@
                     android:padding="8dp"
                     android:src="@drawable/ic_arrow_forward"
                     android:rotation="180"
-                    app:tint="@color/navy_blue_1" />
+                    app:tint="@color/navy_blue_1"
+                    android:contentDescription="Back" />
 
             </androidx.appcompat.widget.Toolbar>
 
@@ -286,7 +287,6 @@
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Top Attractions Header cu View All -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -318,8 +318,19 @@
                     android:focusable="true" />
             </RelativeLayout>
 
-            <!-- Card 1: Colosseum -->
+            <TextView
+                android:id="@+id/txtNoAttractions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="We couldn't find any attractions!"
+                android:textColor="@color/navy_blue_2"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginVertical="8dp"
+                android:visibility="gone" />
+
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardAttraction1"
                 android:layout_width="match_parent"
                 android:layout_height="72dp"
                 android:layout_marginBottom="10dp"
@@ -341,7 +352,8 @@
                         android:background="@drawable/bg_card_top_rounded"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:contentDescription="Attraction 1 image" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -382,14 +394,15 @@
                         app:tint="@color/beige"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent" />
+                        app:layout_constraintEnd_toEndOf="parent"
+                        android:contentDescription="Action button 1" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Card 2: Vatican Museums -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardAttraction2"
                 android:layout_width="match_parent"
                 android:layout_height="72dp"
                 android:layout_marginBottom="10dp"
@@ -411,7 +424,8 @@
                         android:background="@drawable/bg_card_top_rounded"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:contentDescription="Attraction 2 image" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -452,13 +466,13 @@
                         app:tint="@color/beige"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent" />
+                        app:layout_constraintEnd_toEndOf="parent"
+                        android:contentDescription="Action button 2" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Card Generate itinerary -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -482,7 +496,8 @@
                         android:background="@drawable/bg_wand_circle"
                         android:padding="10dp"
                         android:src="@drawable/ic_wand"
-                        app:tint="@color/blue" />
+                        app:tint="@color/blue"
+                        android:contentDescription="Wand icon" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -516,13 +531,13 @@
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:src="@drawable/ic_arrow_forward"
-                        app:tint="@color/white" />
+                        app:tint="@color/white"
+                        android:contentDescription="Forward arrow" />
 
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Top Restaurants Header cu View All -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -554,8 +569,19 @@
                     android:focusable="true" />
             </RelativeLayout>
 
-            <!-- Card Restaurant 1 - Roscioli -->
+            <TextView
+                android:id="@+id/txtNoRestaurants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="We couldn't find any restaurants!"
+                android:textColor="@color/navy_blue_2"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginVertical="8dp"
+                android:visibility="gone" />
+
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardRestaurant1"
                 android:layout_width="match_parent"
                 android:layout_height="72dp"
                 android:layout_marginBottom="10dp"
@@ -577,7 +603,8 @@
                         android:background="@drawable/bg_card_top_rounded"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:contentDescription="Restaurant 1 image" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -586,8 +613,7 @@
                         android:orientation="vertical"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/imgRoscioli"
-                        app:layout_constraintEnd_toStartOf="@id/priceRoscioli">
+                        app:layout_constraintStart_toEndOf="@id/imgRoscioli">
 
                         <TextView
                             android:id="@+id/txtRestaurant1Name"
@@ -610,24 +636,13 @@
 
                     </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/priceRoscioli"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="€€€"
-                        android:textColor="@color/light_turq_1"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Card Restaurant 2 - Da Enzo al 29 -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardRestaurant2"
                 android:layout_width="match_parent"
                 android:layout_height="72dp"
                 android:layout_marginBottom="10dp"
@@ -649,7 +664,8 @@
                         android:background="@drawable/bg_card_top_rounded"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:contentDescription="Restaurant 2 image" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -658,8 +674,7 @@
                         android:orientation="vertical"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/imgDaEnzo"
-                        app:layout_constraintEnd_toStartOf="@id/priceDaEnzo">
+                        app:layout_constraintStart_toEndOf="@id/imgDaEnzo">
 
                         <TextView
                             android:id="@+id/txtRestaurant2Name"
@@ -682,23 +697,12 @@
 
                     </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/priceDaEnzo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="€€"
-                        android:textColor="@color/light_turq_1"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent" />
+
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Spatiu pentru butoanele de jos -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="80dp" />
@@ -707,7 +711,6 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Buton fix jos centrat pe tot ecranul -->
     <LinearLayout
         android:id="@+id/bottomBarCity"
         android:layout_width="match_parent"
