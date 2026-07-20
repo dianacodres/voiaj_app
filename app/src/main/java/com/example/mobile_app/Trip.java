@@ -160,4 +160,22 @@ public class Trip {
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
     public java.util.List<ItineraryItem> getItinerary() { return itinerary; }
     public void setItinerary(java.util.List<ItineraryItem> itinerary) { this.itinerary = itinerary; }
+
+    public String getFormattedDates() {
+        if (startDate == null || endDate == null) return "";
+        try {
+            java.text.SimpleDateFormat isoFormat = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
+            java.text.SimpleDateFormat outFormat = new java.text.SimpleDateFormat("dd MMM", java.util.Locale.US);
+
+            java.util.Date start = isoFormat.parse(startDate);
+            java.util.Date end = isoFormat.parse(endDate);
+
+            if (start != null && end != null) {
+                return outFormat.format(start) + " - " + outFormat.format(end);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return startDate + " - " + endDate;
+    }
 }

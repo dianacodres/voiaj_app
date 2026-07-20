@@ -1,19 +1,25 @@
 package com.example.mobile_app;
 
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * Gestioneaza scrierea si citirea din:
  *   users/{uid}/completedTrips/{tripId}
  *   users/{uid}/savedTrips/{tripId}
- * Separat de AuthRepository, ca sa nu amestecam logica de autentificare cu cea de trips.
  */
+@SuppressWarnings({"unused", "SpellCheckingInspection"})
 public class TripRepository {
 
     private final FirebaseFirestore firestore;
@@ -37,10 +43,13 @@ public class TripRepository {
         void onError(String errorMessage);
     }
 
+    public interface ChatHistoryCallback {
+        void onSuccess(List<Map<String, Object>> intrari);
+        void onError(String errorMessage);
+    }
+
     /**
      * Adauga un trip in savedTrips si incrementeaza atomic savedTripsCount pe users/{uid}.
-     * Folosit din PlanTripActivity - atat pentru "Plan with AI" (status "planned")
-     * cat si pentru "Save as draft" (status "draft").
      */
     public void addSavedTrip(String uid, Trip trip, TripCallback callback) {
         firestore.collection("users").document(uid)
@@ -57,8 +66,6 @@ public class TripRepository {
 
     /**
      * Adauga un trip in completedTrips si incrementeaza atomic completedTripsCount.
-     * Folosit atunci cand un trip planuit se incheie (countdown ajuns la 0) sau
-     * cand userul marcheaza manual o calatorie ca terminata.
      */
     public void addCompletedTrip(String uid, Trip trip, TripCallback callback) {
         firestore.collection("users").document(uid)
@@ -74,8 +81,7 @@ public class TripRepository {
     }
 
     /**
-     * Actualizeaza un trip existent (folosit cand editezi un draft deja salvat,
-     * in loc sa creezi un document nou - evita duplicatele).
+     * Actualizeaza un trip existent in savedTrips.
      */
     public void updateSavedTrip(String uid, String tripId, Trip trip, TripCallback callback) {
         firestore.collection("users").document(uid)
@@ -98,7 +104,8 @@ public class TripRepository {
                     List<Trip> trips = new ArrayList<>();
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         Trip trip = doc.toObject(Trip.class);
-                        trip.recalculateCountdown(); // countdown mereu proaspat, nu din valoarea stocata
+                        trip.setTripId(doc.getId());
+                        trip.recalculateCountdown();
                         trips.add(trip);
                     }
                     callback.onSuccess(trips);
@@ -115,7 +122,9 @@ public class TripRepository {
                 .addOnSuccessListener(querySnapshot -> {
                     List<Trip> trips = new ArrayList<>();
                     for (QueryDocumentSnapshot doc : querySnapshot) {
-                        trips.add(doc.toObject(Trip.class));
+                        Trip trip = doc.toObject(Trip.class);
+                        trip.setTripId(doc.getId());
+                        trips.add(trip);
                     }
                     callback.onSuccess(trips);
                 })
@@ -123,9 +132,37 @@ public class TripRepository {
     }
 
     /**
+     * Cauta urmatoarea calatorie planificata ("planned") din savedTrips a carei data
+     * de incheiere este mai mare sau egala cu data curenta.
+     */
+    public void getNextUpcomingTrip(String userId, TripCallback callback) {
+        String todayStr = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+
+        firestore.collection("users").document(userId).collection("savedTrips")
+                .whereEqualTo("status", "planned")
+                .whereGreaterThanOrEqualTo("endDate", todayStr)
+                .orderBy("endDate", Query.Direction.ASCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+                        DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
+                        Trip trip = doc.toObject(Trip.class);
+                        if (trip != null) {
+                            trip.setTripId(doc.getId());
+                            trip.recalculateCountdown();
+                        }
+                        callback.onSuccess(trip);
+                    } else {
+                        callback.onSuccess(null);
+                    }
+                })
+                .addOnFailureListener(e -> callback.onError(e.getMessage() != null ? e.getMessage() : "Eroare la preluarea urmatoarei calatorii"));
+    }
+
+    /**
      * Cauta printre savedTrips cele cu status "planned" care s-au terminat efectiv
-     * (a trecut complet ultima zi - trip.hasEnded()) si le muta automat in completedTrips.
-     * Se apeleaza inainte de a incarca listele, ca datele sa fie mereu corecte.
+     * si le muta automat in completedTrips.
      */
     public void autoCompleteExpiredTrips(String uid, SimpleCallback callback) {
         getSavedTrips(uid, new TripListCallback() {
@@ -153,7 +190,6 @@ public class TripRepository {
         });
     }
 
-    /** Muta trips-urile expirate unul cate unul. */
     private void moveNextExpired(String uid, List<Trip> expired, int index, SimpleCallback callback) {
         if (index >= expired.size()) {
             callback.onSuccess();
@@ -173,7 +209,7 @@ public class TripRepository {
         });
     }
 
-    /** Sterge un trip din savedTrips (folosit la "Delete" pe un draft) si decrementeaza contorul. */
+    /** Sterge un trip din savedTrips si decrementeaza contorul. */
     public void deleteSavedTrip(String uid, String tripId, SimpleCallback callback) {
         firestore.collection("users").document(uid)
                 .collection("savedTrips").document(tripId)
@@ -186,14 +222,10 @@ public class TripRepository {
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
-    /**
-     * Transforma un draft in "planned" (il "adopti" ca destinatie ferma).
-     * Daca startDate/endDate sunt null (draft flexibil), le poti trimite acum
-     * ca sa porneasca countdown-ul; daca deja are date, trimite null si ramane cum era.
-     */
+    /** Promoveaza un draft la "planned". */
     public void promoteDraftToPlanned(String uid, String tripId, String startDate, String endDate,
                                       int daysCount, SimpleCallback callback) {
-        java.util.Map<String, Object> updates = new java.util.HashMap<>();
+        Map<String, Object> updates = new HashMap<>();
         updates.put("status", "planned");
         if (startDate != null) updates.put("startDate", startDate);
         if (endDate != null) updates.put("endDate", endDate);
@@ -206,10 +238,7 @@ public class TripRepository {
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
-    /**
-     * Muta un trip din savedTrips in completedTrips (cand se termina calatoria planuita)
-     * si actualizeaza atomic ambele contoare.
-     */
+    /** Muta un trip din savedTrips in completedTrips si actualizeaza ambele contoare. */
     public void moveSavedToCompleted(String uid, Trip trip, SimpleCallback callback) {
         String oldTripId = trip.getTripId();
 
@@ -229,16 +258,9 @@ public class TripRepository {
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
-    // ── Istoric de conversatii AI - DOAR pentru itinerarii salvate, nu vreme/buget ──
-
-    public interface ChatHistoryCallback {
-        void onSuccess(java.util.List<java.util.Map<String, Object>> intrari);
-        void onError(String errorMessage);
-    }
-
-    /** Salveaza o intrare in istoric, la momentul in care un itinerariu generat de AI e efectiv salvat. */
+    /** Salveaza o intrare in istoric la salvat itinerariu AI. */
     public void logChatHistoryEntry(String uid, String cityName, String tripId, int daysCount, SimpleCallback callback) {
-        java.util.Map<String, Object> intrare = new java.util.HashMap<>();
+        Map<String, Object> intrare = new HashMap<>();
         intrare.put("cityName", cityName);
         intrare.put("tripId", tripId);
         intrare.put("daysCount", daysCount);
@@ -251,7 +273,7 @@ public class TripRepository {
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
-    /** Ia ultimele N intrari din istoric, cele mai noi primele - folosit la "Recent" in AI Hub. */
+    /** Preia ultimele N intrari din istoric. */
     public void getRecentChatHistory(String uid, int limit, ChatHistoryCallback callback) {
         firestore.collection("users").document(uid)
                 .collection("chatHistory")
@@ -259,7 +281,7 @@ public class TripRepository {
                 .limit(limit)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    java.util.List<java.util.Map<String, Object>> intrari = new ArrayList<>();
+                    List<Map<String, Object>> intrari = new ArrayList<>();
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         intrari.add(doc.getData());
                     }

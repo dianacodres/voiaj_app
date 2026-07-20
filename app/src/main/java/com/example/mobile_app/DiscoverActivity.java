@@ -128,48 +128,44 @@ public class DiscoverActivity extends AppCompatActivity {
             }
         }
 
-// 3. Programează verificarea zilnică a vacanțelor (rulat o singură dată)
-// ── CALCULARE DELAY INIȚIAL PENTRU ORA FIXĂ 12:08 AM ──
+        // 3. Programează verificarea zilnică a vacanțelor (rulat o singură dată)
+        // ── CALCULARE DELAY INIȚIAL PENTRU ORA FIXĂ 10:00 AM ──
         java.util.Calendar calendarCurent = java.util.Calendar.getInstance();
         java.util.Calendar calendarTinta = java.util.Calendar.getInstance();
 
-// Setăm ora țintă la 12:08 AM (Ora 0, minutul 8)
-        calendarTinta.set(java.util.Calendar.HOUR_OF_DAY,10 );
+        calendarTinta.set(java.util.Calendar.HOUR_OF_DAY, 10);
         calendarTinta.set(java.util.Calendar.MINUTE, 0);
         calendarTinta.set(java.util.Calendar.SECOND, 0);
         calendarTinta.set(java.util.Calendar.MILLISECOND, 0);
 
-// Dacă ora 12:08 AM a trecut deja pentru ziua de azi, programăm pentru mâine
         if (calendarCurent.after(calendarTinta)) {
             calendarTinta.add(java.util.Calendar.DAY_OF_MONTH, 1);
         }
 
-// Calculăm diferența în milisecunde dintre acum și ora 12:08 AM
         long delayInitialMs = calendarTinta.getTimeInMillis() - calendarCurent.getTimeInMillis();
 
-// Programează verificarea periodică (la fiecare 24 de ore) cu delay-ul calculat
         androidx.work.PeriodicWorkRequest tripCheckRequest =
                 new androidx.work.PeriodicWorkRequest.Builder(TripNotificationWorker.class, 24, java.util.concurrent.TimeUnit.HOURS)
                         .setInitialDelay(delayInitialMs, java.util.concurrent.TimeUnit.MILLISECONDS)
                         .build();
 
-// Schimbat în REPLACE pentru a recalcula secundele și a preveni decalajele în timp
         androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
                 "TripNotificationWork",
                 androidx.work.ExistingPeriodicWorkPolicy.REPLACE,
                 tripCheckRequest
         );
 
-// 4. Resetează alarma de inactivitate (se amână cu încă 2 zile de fiecare dată când deschide ecranul)
+        // 4. Resetează alarma de inactivitate
         androidx.work.OneTimeWorkRequest inactivityRequest =
                 new androidx.work.OneTimeWorkRequest.Builder(InactivityWorker.class)
                         .setInitialDelay(2, java.util.concurrent.TimeUnit.DAYS)
                         .build();
         androidx.work.WorkManager.getInstance(this).enqueueUniqueWork(
                 "InactivityWork",
-                androidx.work.ExistingWorkPolicy.REPLACE, // Înlocuiește vechea alarmă cu una proaspătă de 2 zile
+                androidx.work.ExistingWorkPolicy.REPLACE,
                 inactivityRequest
         );
+
         tripRepository = new TripRepository();
         splashOverlay = findViewById(R.id.splashOverlay);
         overlayContainer = findViewById(R.id.splashOverlayContainer);
@@ -181,7 +177,6 @@ public class DiscoverActivity extends AppCompatActivity {
         if (rootLayout != null) {
             ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                // Punem padding doar jos pentru bara de navigare, lăsând sus 0 ca să treacă sub ceas
                 v.setPadding(0, 0, 0, systemBars.bottom);
                 return insets;
             });
@@ -539,13 +534,15 @@ public class DiscoverActivity extends AppCompatActivity {
             int progress = (int) Math.max(0, Math.min(100, 100 - (daysUntil * 100 / 30.0)));
             progressTrip.setProgress(progress);
         }
+
+        // Conectarea click-ului pe cardul excursiilor viitoare
         CardView cardNextTrip = findViewById(R.id.cardNextTrip);
         if (cardNextTrip != null) {
             cardNextTrip.setOnClickListener(v -> {
                 Intent intent = new Intent(DiscoverActivity.this, ExploreActivity.class);
                 intent.putExtra("cityId", trip.getCityId());
                 intent.putExtra("cityName", trip.getCityName());
-                intent.putExtra("isDraft", "draft".equals(trip.getStatus()));
+                intent.putExtra("tripId", trip.getTripId());
                 startActivity(intent);
             });
         }
