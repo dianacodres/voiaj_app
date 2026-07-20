@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Voya</string>
+    <string name="app_name">Voyaj</string>
     <string name="step_label">STEP 2 · INTERESTS</string>
     <string name="step_one_of_two">1/2</string>
     <string name="step_two_of_two">2/2</string>
@@ -48,5 +48,5 @@
     <string name="nav_discover">Discover</string>
     <string name="nav_map">Map</string>
     <string name="nav_wishlist">Journeys</string>
-    <string name="nav_ai">Assistant</string>
+    <string name="nav_ai">Voya</string>
 </resources>

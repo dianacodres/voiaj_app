@@ -358,17 +358,27 @@ public class ExploreActivity extends AppCompatActivity implements SensorEventLis
         if (txtTotalRouteSummary != null) txtTotalRouteSummary.setText("");
         if (txtInstruction != null) txtInstruction.setText("");
 
-// Curățăm pinii locurilor
+        // Curățăm pinii locurilor
         clearPlaceMarkers();
 
-// Ștergem și markerii vechi ai orașelor
+        // Ștergem și markerii vechi ai orașelor
         for (Marker m : activeCityMarkers) {
             mapLibreMap.removeMarker(m);
         }
         activeCityMarkers.clear();
 
-// Reafișăm toate orașele cu markeri noi
+        // Reafișăm toate orașele cu markeri noi
         displayAllLoadedCities();
+
+        // ── NOU: reincarcam pinii orasului curent (de unde am intrat in route mode) ──
+        if (currentCityId != null) {
+            for (City c : allCitiesList) {
+                if (c.getId() != null && c.getId().equalsIgnoreCase(currentCityId)) {
+                    focusOnCity(c); // face zoom + apeleaza loadCityPlacesWithTripMap(cityId, null) + renderPlaceMarkers()
+                    break;
+                }
+            }
+        }
 
         // Resetăm chip-ul „All Europe”
         TextView chipAll = findViewById(R.id.chipAllEurope);
@@ -1183,6 +1193,7 @@ public class ExploreActivity extends AppCompatActivity implements SensorEventLis
         mapLibreMap.animateCamera(CameraUpdateFactory.newLatLngZoom(targetCenter, FOCUS_CITY_ZOOM), 750);
         loadCityPlacesWithTripMap(city.getId(), null);
     }
+
 
     private void initUserLocationMarker() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {

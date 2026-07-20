@@ -264,7 +264,9 @@ public class JourneyActivity extends AppCompatActivity {
                     }
                 }
 
-                recyclerPlanned.setAdapter(new TripAdapter(planned, true, trip -> openTripRoute(trip, false)));
+                recyclerPlanned.setAdapter(new TripAdapter(planned, true, trip -> {
+
+                }));
                 txtNoPlannedTrips.setVisibility(planned.isEmpty() ? View.VISIBLE : View.GONE);
 
                 recyclerDrafts.setAdapter(new TripDraftAdapter(drafts,
@@ -355,6 +357,9 @@ public class JourneyActivity extends AppCompatActivity {
         intent.putExtra("cityId", trip.getCityId());
         intent.putExtra("cityName", trip.getCityName());
         intent.putExtra("isDraft", isDraft);
+        if (trip.getTripId() != null) {
+            intent.putExtra("tripId", trip.getTripId());
+        }
         startActivity(intent);
     }
 
@@ -378,6 +383,7 @@ public class JourneyActivity extends AppCompatActivity {
     private void showDraftOptionsDialog(Trip trip) {
         com.google.android.material.bottomsheet.BottomSheetDialog dialog =
                 new com.google.android.material.bottomsheet.BottomSheetDialog(this);
+
         View view = getLayoutInflater().inflate(R.layout.layout_bottom_sheet_draft_options, null);
         dialog.setContentView(view);
 

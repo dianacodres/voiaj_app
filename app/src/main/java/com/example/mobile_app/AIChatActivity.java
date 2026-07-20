@@ -1374,27 +1374,25 @@ public class AIChatActivity extends AppCompatActivity {
                             trip.setTripId(savedTrip.getTripId());
                             // Logăm în istoric pentru ca AI Hub să o afișeze la Recente cu timpul relativ ("now")
                             logheazaIstoricConversatie(trip);
+                            deschideExploreInRouteMode(trip);
                         }
 
                         @Override
                         public void onError(String errorMessage) {
                             Log.e("AIChat", "Autosave draft failed: " + errorMessage);
+                            // Chiar daca autosave-ul esueaza, tot deschidem harta - userul nu trebuie blocat
+                            deschideExploreInRouteMode(trip);
                         }
                     });
+                    return;
                 }
             }
 
-            // 2. Deschderea normală a ecranului cu harta
-            try {
-                Intent mapIntent = new Intent(AIChatActivity.this, ExploreActivity.class);
-                mapIntent.putExtra("tripObject", trip);
-                mapIntent.putExtra("cityId", trip.getCityId());
-                mapIntent.putExtra("countryId", trip.getCountryId());
-                startActivity(mapIntent);
-            } catch (Exception e) {
-                android.widget.Toast.makeText(AIChatActivity.this, "Map screen is still under construction!", android.widget.Toast.LENGTH_SHORT).show();
-            }
+            // Trip deja salvat (sau fara user logat) - deschidem direct
+            deschideExploreInRouteMode(trip);
         });
+
+
         // ── 3. MODIFICĂ MODUL ÎN CARE LE ADAUGI ÎN ANTET ──
         // În loc să adaugi doar btnSave, le adaugi pe amândouă în containerul antetului:
         antet.addView(coloanaTitlu);
@@ -1475,6 +1473,19 @@ public class AIChatActivity extends AppCompatActivity {
             tripRepositoryLocal.updateSavedTrip(uid, trip.getTripId(), trip, callback);
         } else {
             tripRepositoryLocal.addSavedTrip(uid, trip, callback);
+        }
+    }
+    private void deschideExploreInRouteMode(Trip trip) {
+        try {
+            Intent mapIntent = new Intent(AIChatActivity.this, ExploreActivity.class);
+            mapIntent.putExtra("cityId", trip.getCityId());
+            mapIntent.putExtra("cityName", trip.getCityName());
+            mapIntent.putExtra("countryId", trip.getCountryId());
+            mapIntent.putExtra("tripId", trip.getTripId()); // ID-ul esential pentru preluarea itinerariului
+            mapIntent.putExtra("isRouteModeActive", true);   // Forteaza Route Mode direct la deschidere
+            startActivity(mapIntent);
+        } catch (Exception e) {
+            android.widget.Toast.makeText(AIChatActivity.this, "Map screen is still under construction!", android.widget.Toast.LENGTH_SHORT).show();
         }
     }
 

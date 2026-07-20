@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:fontFamily="sans-serif-black"
-            android:text="Voiaj AI"
+            android:text="Voya"
             android:textColor="@color/white"
             android:textSize="19sp"
             android:textStyle="bold"
