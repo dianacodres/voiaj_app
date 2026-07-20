@@ -9,8 +9,9 @@
     android:background="#F8F9FA"
     tools:context=".ExploreActivity">
 
-    <!-- ── HEADER TRASEU COMPACT (Scris mare) ── -->
+
     <LinearLayout
+
         android:id="@+id/routeHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
