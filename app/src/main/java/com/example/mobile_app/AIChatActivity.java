@@ -82,6 +82,13 @@ public class AIChatActivity extends AppCompatActivity {
     private final CityRepository cityRepository = new CityRepository();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+
+
+    // VARIABILE NOI DECLARATE PENTRU REMEDIEREA ERORILOR:
+    private String modCurent = "ASK_ANYTHING"; // Ține minte starea curentă a chat-ului
+    private java.util.Set<String> poiUtilizate = new java.util.HashSet<>(); // Evită POI-urile duplicate
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,15 +114,12 @@ public class AIChatActivity extends AppCompatActivity {
         }
 
         // 2. PADDING PENTRU CONȚINUT (Fără bandă albă)
-        // Aplicăm padding-ul doar jos (pentru navigație/tastatură),
-        // dar lăsăm header-ul să urce sub status bar
         View aiChatRoot = findViewById(R.id.aiChatRoot);
         if (aiChatRoot != null) {
             ViewCompat.setOnApplyWindowInsetsListener(aiChatRoot, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
                 Insets tastatura = insets.getInsets(WindowInsetsCompat.Type.ime());
 
-                // Padding jos pentru tastatură și navigație, sus 0 pentru a fi transparent sub ceas
                 int paddingJos = Math.max(systemBars.bottom, tastatura.bottom);
                 v.setPadding(0, 0, 0, paddingJos);
 
@@ -132,12 +136,16 @@ public class AIChatActivity extends AppCompatActivity {
 
             // 1. Padding header-ul sus (pentru ceas)
             View header = findViewById(R.id.header);
-            header.setPadding(header.getPaddingLeft(), systemBars.top + 16, header.getPaddingRight(), header.getPaddingBottom());
+            if (header != null) {
+                header.setPadding(header.getPaddingLeft(), systemBars.top + 16, header.getPaddingRight(), header.getPaddingBottom());
+            }
 
             // 2. Padding inputBar jos (pentru navigație/tastatură)
             View inputBar = findViewById(R.id.inputBar);
-            int paddingJos = Math.max(systemBars.bottom, tastatura.bottom);
-            inputBar.setPadding(inputBar.getPaddingLeft(), inputBar.getPaddingTop(), inputBar.getPaddingRight(), paddingJos + 12);
+            if (inputBar != null) {
+                int paddingJos = Math.max(systemBars.bottom, tastatura.bottom);
+                inputBar.setPadding(inputBar.getPaddingLeft(), inputBar.getPaddingTop(), inputBar.getPaddingRight(), paddingJos + 12);
+            }
 
             // 3. Scroll la ultimul mesaj
             if (tastatura.bottom > 0 && scrollMessages != null) {
@@ -146,21 +154,32 @@ public class AIChatActivity extends AppCompatActivity {
 
             return WindowInsetsCompat.CONSUMED;
         });
+
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         View btnNewChat = findViewById(R.id.btnNewChat);
         if (btnNewChat != null) {
             btnNewChat.setOnClickListener(v -> {
-                Intent intent = new Intent(AIChatActivity.this, AIChatActivity.class);
-                intent.putExtra("askAnythingMode", true);
-                startActivity(intent);
-                finish();
+                messagesContainer.removeAllViews();
+                modCurent = "ASK_ANYTHING";
+
+                if (ultimeleRecomandari != null) {
+                    ultimeleRecomandari.clear();
+                }
+                indexRecomandareCurenta = 0;
+
+                if (poiUtilizate != null) {
+                    poiUtilizate.clear();
+                }
+
+                addAiBubble("Hi! I've started a new clean chat. Ask me anything about your next destination, weather, or budgets!");
+                scrollMessages.post(() -> scrollMessages.fullScroll(androidx.core.widget.NestedScrollView.FOCUS_DOWN));
+                android.widget.Toast.makeText(AIChatActivity.this, "New conversation started", android.widget.Toast.LENGTH_SHORT).show();
             });
         }
 
         messagesContainer = findViewById(R.id.messagesContainer);
         scrollMessages = findViewById(R.id.scrollMessages);
-
         EditText edtChatInput = findViewById(R.id.edtChatInput);
 
         executor.execute(() -> {
@@ -181,12 +200,22 @@ public class AIChatActivity extends AppCompatActivity {
             }
         });
 
+        // ── VERIFICĂRI PARAMETRI INTENT (Optimizat pentru Scurtătura Directă) ──
+        boolean directDisplay = getIntent().getBooleanExtra("SHORTCUT_DIRECT_DISPLAY", false);
         String initialPrompt = getIntent().getStringExtra("initialPrompt");
         boolean askAnythingMode = getIntent().getBooleanExtra("askAnythingMode", false);
         String previewCityId = getIntent().getStringExtra("previewCityId");
         String viewSavedTripId = getIntent().getStringExtra("viewSavedTripId");
 
-        if (viewSavedTripId != null) {
+        // ── BLOC MODIFICAT: Sărim peste întrebări dacă venim din noul flux ──
+        if (directDisplay) {
+            // Afișăm vizual mesajul în chat ca și cum utilizatorul l-ar fi tastat
+            if (initialPrompt != null) {
+                addUserBubble(initialPrompt);
+            }
+            // Lansăm direct funcția ta care desenează itinerariul complet (folosind datele deja stocate în Intent)
+            aratatItinerariulPreview();
+        } else if (viewSavedTripId != null) {
             aratatItinerariulSalvat(viewSavedTripId);
         } else if (previewCityId != null) {
             aratatItinerariulPreview();
@@ -199,7 +228,6 @@ public class AIChatActivity extends AppCompatActivity {
             addWelcomeMessage();
         }
     }
-
     /** Mesaj de intampinare cu optiuni apasabile - folosit doar daca se ajunge aici fara niciun mod specific. */
     private void addWelcomeMessage() {
         addAiBubble("Hi! I'm Voiaj AI 👋 You can ask me to:");
@@ -262,42 +290,60 @@ public class AIChatActivity extends AppCompatActivity {
 
         executor.execute(() -> {
             if (intentClassifier == null) {
-                mainHandler.post(() -> addAiBubble("Sorry, I'm still starting up - try again in a second."));
+                mainHandler.post(() -> {
+                    ascundeTypingIndicator();
+                    addAiBubble("Sorry, I'm still starting up - try again in a second.");
+                });
                 return;
             }
             try {
                 IntentClassifier.Rezultat rezultat = intentClassifier.clasifica(text);
                 Log.d("AIChat", "Intentie: " + rezultat.intentie + " (" + rezultat.increderea + ")");
-                mainHandler.post(() -> ruteazaDupaIntentie(rezultat.intentie, text));
-            } catch (Exception e) {
-                Log.e("AIChat", "Eroare la clasificare", e);
-                mainHandler.post(() -> addAiBubble("Sorry, something went wrong understanding that."));
+
+                if (rezultat != null && rezultat.intentie != null) {
+                    mainHandler.post(() -> ruteazaDupaIntentie(rezultat.intentie, text));
+                } else {
+                    mainHandler.post(() -> {
+                        ascundeTypingIndicator();
+                        addAiBubble("I couldn't process that message properly.");
+                    });
+                }
+            } catch (Throwable t) {
+                Log.e("AIChat", "Error classifying message", t);
+                mainHandler.post(() -> {
+                    ascundeTypingIndicator();
+                    addAiBubble("Voiaj AI encountered a temporary issue processing your request.");
+                    android.widget.Toast.makeText(AIChatActivity.this, "AI Info: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                });
             }
         });
     }
 
     private void ruteazaDupaIntentie(String intentie, String textMesaj) {
+        String t = textMesaj.toLowerCase();
+
+        // Fallback inteligent: Dacă a clasificat ca recomandare, dar userul a zis deja un oraș,
+        // înseamnă că vrea detalii/comparații despre acel oraș (deci Ask Anything)
+        if ("recommend_destination".equals(intentie) && (t.contains("rome") || t.contains("barcelona") || t.contains("restaurant"))) {
+            intentie = "ask_anything";
+        }
+
         switch (intentie) {
             case "plan_itinerary":
                 intrebaCumVreaSaPlanuiasca();
                 break;
-
             case "weather_season":
                 raspundeCuVremea(textMesaj);
                 break;
-
             case "budget_estimate":
                 raspundeCuBugetul(textMesaj);
                 break;
-
             case "recommend_destination":
                 raspundeCuRecomandare(textMesaj);
                 break;
-
             case "ask_anything":
                 raspundeCuAskAnything(textMesaj);
                 break;
-
             default:
                 addAiBubble("That's a great question - I'll be able to answer this in more detail soon.");
                 break;
@@ -712,9 +758,6 @@ public class AIChatActivity extends AppCompatActivity {
                 executor.execute(() -> {
                     try {
                         double[] queryEmbedding = doarDupaInterese ? null : embeddingModel.getEmbedding(textMesaj);
-
-                        // Calculam scorul FIECARUI oras (nu doar il retinem pe cel mai bun),
-                        // ca sa putem arata si urmatoarele optiuni, daca userul cere mai multe.
                         List<OrasCuScor> orasesCuScoruri = new java.util.ArrayList<>();
 
                         for (City oras : cities) {
@@ -725,9 +768,18 @@ public class AIChatActivity extends AppCompatActivity {
                             } else {
                                 String profil = construiesteProfilOras(oras);
                                 if (profil.isEmpty()) continue;
+
                                 double[] orasEmbedding = embeddingModel.getEmbedding(profil);
                                 double scorSemantic = produsScalar(queryEmbedding, orasEmbedding);
-                                scorFinal = scorSemantic + calculeazaBonusInterese(oras, intereseUser);
+
+                                // ── FILTRU DE SIGURANȚĂ (THRESHOLD) ──
+                                // Dacă scorul semantic este mai mic de 0.25, destinația este complet pe lângă subiect.
+                                // Nu îi mai permitem să urce artificial în top doar din bonusul de interese.
+                                if (scorSemantic < 0.25) {
+                                    scorFinal = scorSemantic; // Păstrăm scorul pur, mic, fără bonus
+                                } else {
+                                    scorFinal = scorSemantic + calculeazaBonusInterese(oras, intereseUser);
+                                }
                             }
 
                             orasesCuScoruri.add(new OrasCuScor(oras, scorFinal));
@@ -735,8 +787,6 @@ public class AIChatActivity extends AppCompatActivity {
 
                         orasesCuScoruri.sort((a, b) -> Double.compare(b.scor, a.scor));
 
-                        // Limitam la maxim 3 variante - restul orasesor, chiar daca tehnic au un scor
-                        // mai mic, nu inseamna ca sunt potriviri bune, doar ca sunt "mai putin nepotrivite".
                         int limita = Math.min(3, orasesCuScoruri.size());
                         List<OrasCuScor> topRecomandari = orasesCuScoruri.subList(0, limita);
 
@@ -1289,8 +1339,67 @@ public class AIChatActivity extends AppCompatActivity {
             btnSave.setOnClickListener(v -> salveazaTripulGenerat(trip, btnSave));
         }
 
+
+        // ── 2. INSEREAZĂ ACEST BUTON NOU ("VIEW ON MAP") EXACT AICI ──
+        com.google.android.material.button.MaterialButton btnMap = new com.google.android.material.button.MaterialButton(this);
+        btnMap.setText("View on Map");
+        btnMap.setTextSize(12f);
+        btnMap.setAllCaps(false);
+        btnMap.setTextColor(Color.WHITE);
+        btnMap.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#011C40"))); // navy_blue_1
+        btnMap.setCornerRadius((int) (10 * density));
+        btnMap.setInsetTop(0);
+        btnMap.setInsetBottom(0);
+
+
+        // Adăugăm o margine mică la stânga butonului ca să nu se lipească de butonul Save
+        LinearLayout.LayoutParams mapBtnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        mapBtnParams.leftMargin = (int) (8 * density);
+        btnMap.setLayoutParams(mapBtnParams);
+
+        btnMap.setOnClickListener(v -> {
+            // 1. Salvare automată în fundal ca draft pentru a nu pierde progresul în "Recente"
+            if (trip != null && !esteDejaSalvat) {
+                String uid = FirebaseAuth.getInstance().getCurrentUser() != null
+                        ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+                if (uid != null) {
+                    // Îi setăm temporar statusul de draft ca să știm că nu e salvată definitiv
+                    trip.setStatus("draft");
+
+                    TripRepository localRepo = new TripRepository();
+                    localRepo.addSavedTrip(uid, trip, new TripRepository.TripCallback() {
+                        @Override
+                        public void onSuccess(Trip savedTrip) {
+                            trip.setTripId(savedTrip.getTripId());
+                            // Logăm în istoric pentru ca AI Hub să o afișeze la Recente cu timpul relativ ("now")
+                            logheazaIstoricConversatie(trip);
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            Log.e("AIChat", "Autosave draft failed: " + errorMessage);
+                        }
+                    });
+                }
+            }
+
+            // 2. Deschderea normală a ecranului cu harta
+            try {
+                Intent mapIntent = new Intent(AIChatActivity.this, ExploreActivity.class);
+                mapIntent.putExtra("tripObject", trip);
+                mapIntent.putExtra("cityId", trip.getCityId());
+                mapIntent.putExtra("countryId", trip.getCountryId());
+                startActivity(mapIntent);
+            } catch (Exception e) {
+                android.widget.Toast.makeText(AIChatActivity.this, "Map screen is still under construction!", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        });
+        // ── 3. MODIFICĂ MODUL ÎN CARE LE ADAUGI ÎN ANTET ──
+        // În loc să adaugi doar btnSave, le adaugi pe amândouă în containerul antetului:
         antet.addView(coloanaTitlu);
         antet.addView(btnSave);
+        antet.addView(btnMap); // Adăugat în dreapta butonului de Save
 
         // Rand de statistici: DAYS / BUDGET / SPOTS
         LinearLayout randStatistici = new LinearLayout(this);
@@ -2062,7 +2171,8 @@ public class AIChatActivity extends AppCompatActivity {
                                     modificariNesalvate = false;
 
                                     addAiBubble("Here's your saved itinerary for " + trip.getCityName() + "! You can still ask me to add, remove, or swap things.");
-                                    addItineraryCard(trip, hartaAtractii, hartaRestaurante, true); // asta chiar e deja salvat
+                                    boolean esteSalvatDefinitiv = "planned".equals(trip.getStatus());
+                                    addItineraryCard(trip, hartaAtractii, hartaRestaurante, esteSalvatDefinitiv);
                                     adaugaCardulDeVreme(trip);
                                     verificaVremePeZileSiSugereazaAlternative(trip, hartaAtractii);
                                 }
@@ -2246,49 +2356,156 @@ public class AIChatActivity extends AppCompatActivity {
         executor.execute(() -> {
             try {
                 double[] queryEmbedding = embeddingModel.getEmbedding(textMesaj);
-
                 List<PotrivirePoi> potriviri = new java.util.ArrayList<>();
 
                 for (Attraction a : hartaAtractii.values()) {
                     if (poiUtilizate.contains(a.getId())) continue;
                     String profil = construiesteProfilPoi(a.getName(), a.getCategory(), a.getTags());
-                    if (profil.isEmpty()) continue;
+                    // Chiar dacă profilul e gol, lăsăm măcar numele pentru comparație ca să nu dea skip
+                    if (profil.isEmpty()) profil = a.getName() != null ? a.getName() : "";
+
                     double[] emb = embeddingModel.getEmbedding(profil);
                     double scor = produsScalar(queryEmbedding, emb);
-                    potriviri.add(new PotrivirePoi(a.getName(), a.getCategory(), scor, true));
+                    potriviri.add(new PotrivirePoi(a.getId(), a.getName(), a.getCategory(), scor, true));
                 }
 
                 for (Restaurant r : hartaRestaurante.values()) {
                     if (poiUtilizate.contains(r.getId())) continue;
                     String profil = construiesteProfilRestaurant(r);
-                    if (profil.isEmpty()) continue;
+                    if (profil.isEmpty()) profil = r.getName() != null ? r.getName() : "";
+
                     double[] emb = embeddingModel.getEmbedding(profil);
                     double scor = produsScalar(queryEmbedding, emb);
-                    potriviri.add(new PotrivirePoi(r.getName(), r.getCategory(), scor, false));
+                    potriviri.add(new PotrivirePoi(r.getId(), r.getName(), r.getCategory(), scor, false));
                 }
 
                 potriviri.sort((a, b) -> Double.compare(b.scor, a.scor));
+
+                // Siguranță în cazul în care lista totală e goală
+                if (potriviri.isEmpty()) {
+                    mainHandler.post(() -> addAiBubble("I couldn't find any locations registered in " + numeOras + "."));
+                    return;
+                }
+
                 List<PotrivirePoi> top = potriviri.subList(0, Math.min(3, potriviri.size()));
 
                 mainHandler.post(() -> {
-                    if (top.isEmpty()) {
-                        addAiBubble("I couldn't find a good match for that in " + numeOras + ".");
-                        return;
+                    addAiBubble("Here is what I found matching your request in " + numeOras + ":");
+
+                    float density = getResources().getDisplayMetrics().density;
+                    android.widget.HorizontalScrollView scroll = new android.widget.HorizontalScrollView(AIChatActivity.this);
+                    scroll.setHorizontalScrollBarEnabled(false);
+                    scroll.setClipToPadding(false);
+                    scroll.setPadding((int)(12 * density), 0, (int)(12 * density), (int)(14 * density));
+
+                    LinearLayout container = new LinearLayout(AIChatActivity.this);
+                    container.setOrientation(LinearLayout.HORIZONTAL);
+
+                    for (PotrivirePoi p : top) {
+                        View cardPoi = android.view.LayoutInflater.from(AIChatActivity.this)
+                                .inflate(R.layout.item_ai_destination_card, container, false);
+
+                        android.widget.ImageView img = cardPoi.findViewById(R.id.imgDestinationCard);
+                        TextView name = cardPoi.findViewById(R.id.txtDestinationName);
+                        TextView tagline = cardPoi.findViewById(R.id.txtDestinationTagline);
+                        com.google.android.material.button.MaterialButton btnView = cardPoi.findViewById(R.id.btnViewDestination);
+
+                        name.setText(p.nume);
+                        tagline.setText(p.categorie != null ? p.categorie : (p.esteAtractie ? "Attraction" : "Restaurant"));
+
+                        String imageUrl = null;
+                        String officialLink = null;
+
+                        // ── INSEREAZĂ ACEST BLOC ÎN INTERIORUL BUCLEI FOR (PotrivirePoi p : top) ──
+
+                        if (p.esteAtractie) {
+                            Attraction a = hartaAtractii.get(p.id);
+                            if (a != null) {
+                                imageUrl = a.getImageUrl();
+                                if (a.getInfoUrl() != null && !a.getInfoUrl().trim().isEmpty()) {
+                                    officialLink = a.getInfoUrl();
+                                } else {
+                                    officialLink = a.getTicketUrl();
+                                }
+                            }
+
+                            // ── CONFIGURARE TEXT ȘI VIZIBILITATE BUTON ──
+                            btnView.setVisibility(android.view.View.VISIBLE);
+                            btnView.setText("View Details");
+                            btnView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10.5f); // Text o idee mai mic ca să respire
+                            btnView.setGravity(android.view.Gravity.CENTER);
+                            btnView.setTextAlignment(android.view.View.TEXT_ALIGNMENT_CENTER);
+
+                            // Resetăm padding-ul și marginile interne invizibile ale MaterialButton care decalează textul
+                            btnView.setPadding(0, 0, 0, 0);
+                            btnView.setInsetTop(0);
+                            btnView.setInsetBottom(0);
+
+                            // ── FORȚARE BUTON MAI ÎNGUST ȘI ALINIAT PE CENTRUL CARDULUI ──
+                            LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                                    (int)(160 * density), // Lățime fixă compactă de 140dp (nu mai atinge marginile)
+                                    (int)(36 * density)   // Înălțime fixă elegantă
+                            );
+                            btnParams.gravity = android.view.Gravity.CENTER_HORIZONTAL; // Îl forțează să stea pe mijlocul axei orizontale a cardului
+                            btnParams.topMargin = (int)(10 * density);
+                            btnParams.bottomMargin = (int)(6 * density);
+                            btnView.setLayoutParams(btnParams);
+                        } else {
+                            Restaurant r = hartaRestaurante.get(p.id);
+                            if (r != null) {
+                                imageUrl = r.getImageUrl();
+                            }
+                            // Ascundem butonul pentru restaurante
+                            btnView.setVisibility(android.view.View.GONE);
+                        }
+
+                        // Încărcare imagine din cloud
+                        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+                            String finalImageUrl = imageUrl;
+                            java.util.concurrent.ForkJoinPool.commonPool().execute(() -> {
+                                try {
+                                    java.io.InputStream in = new java.net.URL(finalImageUrl).openStream();
+                                    android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeStream(in);
+                                    mainHandler.post(() -> img.setImageBitmap(bitmap));
+                                } catch (Exception e) {
+                                    mainHandler.post(() -> img.setImageResource(R.drawable.rome));
+                                }
+                            });
+                        } else {
+                            img.setImageResource(R.drawable.rome);
+                        }
+
+                        // Acțiune buton detalii
+                        if (p.esteAtractie) {
+                            String finalOfficialLink = officialLink;
+                            btnView.setOnClickListener(v -> {
+                                if (finalOfficialLink != null && !finalOfficialLink.trim().isEmpty()) {
+                                    try {
+                                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(finalOfficialLink));
+                                        startActivity(browserIntent);
+                                    } catch (Exception e) {
+                                        android.widget.Toast.makeText(AIChatActivity.this, "Cannot open link", android.widget.Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    android.widget.Toast.makeText(AIChatActivity.this, "No website link available in database.", android.widget.Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+
+                        // Card lărgit la 220dp pentru lizibilitate maximă
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams((int)(220 * density), LinearLayout.LayoutParams.WRAP_CONTENT);
+                        lp.rightMargin = (int)(12 * density);
+                        cardPoi.setLayoutParams(lp);
+
+                        container.addView(cardPoi);
                     }
 
-                    StringBuilder mesaj = new StringBuilder("Here's what I found in " + numeOras + ":\n");
-                    for (PotrivirePoi p : top) {
-                        mesaj.append(p.esteAtractie ? "🏛 " : "🍽 ").append(p.nume);
-                        if (p.categorie != null) mesaj.append(" (").append(p.categorie).append(")");
-                        mesaj.append("\n");
-                    }
-                    if (tripCurent != null) {
-                        mesaj.append("\nYou can add any of these with \"add [name]\".");
-                    }
-                    addAiBubble(mesaj.toString().trim());
+                    scroll.addView(container);
+                    messagesContainer.addView(scroll);
+                    scrollMessages.post(() -> scrollMessages.fullScroll(NestedScrollView.FOCUS_DOWN));
                 });
             } catch (Exception e) {
-                mainHandler.post(() -> addAiBubble("Sorry, something went wrong with that search."));
+                Log.e("AIChat", "Error in semantic search", e);
             }
         });
     }
@@ -2321,19 +2538,20 @@ public class AIChatActivity extends AppCompatActivity {
 
     /** Rezultatul unei potriviri semantice de POI - doar pentru afisare, nu se salveaza nicaieri. */
     private static class PotrivirePoi {
+        final String id;
         final String nume;
         final String categorie;
         final double scor;
         final boolean esteAtractie;
 
-        PotrivirePoi(String nume, String categorie, double scor, boolean esteAtractie) {
+        PotrivirePoi(String id, String nume, String categorie, double scor, boolean esteAtractie) {
+            this.id = id;
             this.nume = nume;
             this.categorie = categorie;
             this.scor = scor;
             this.esteAtractie = esteAtractie;
         }
     }
-
     private void addUserBubble(String text) {
         TextView bubble = new TextView(this);
         bubble.setText(text);

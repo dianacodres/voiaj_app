@@ -68,24 +68,40 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <FrameLayout
-        android:id="@+id/loadingOverlay"
+
+    <!-- ── MASCA PREMIUM DE LOADING NATIVĂ (Înlocuiește blocul vechi cu Lottie) ── -->
+    <RelativeLayout
+        android:id="@+id/layoutLoadingScreen"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
+        android:background="@color/bg"
         android:clickable="true"
         android:focusable="true"
-        android:background="@color/bg">
+        android:gravity="center"
+        android:visibility="visible">
 
-        <com.airbnb.lottie.LottieAnimationView
-            android:id="@+id/loadingAnimation"
-            android:layout_width="300dp"
-            android:layout_height="300dp"
-            android:layout_gravity="center"
-            app:lottie_rawRes="@raw/loading_screen"
-            app:lottie_autoPlay="true"
-            app:lottie_loop="true" />
-    </FrameLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
 
+            <ProgressBar
+                android:id="@+id/progressBarLoading"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:indeterminateTint="@color/light_turq_1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Finding the best places..."
+                android:textColor="@color/navy_blue_1"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"/>
+        </LinearLayout>
+
+    </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
