@@ -224,6 +224,24 @@ public class ExploreActivity extends AppCompatActivity implements SensorEventLis
         if (cardMapPopup != null) cardMapPopup.setVisibility(View.GONE);
         if (cardPinPopup != null) cardPinPopup.setVisibility(View.GONE);
 
+        setupRegionChips();
+        setupButtons();
+        setupBottomNavigation();
+        setupCategoryChipsListener();
+
+        View btnPopupDetails = findViewById(R.id.btnPopupDetails);
+        if (btnPopupDetails != null) {
+            btnPopupDetails.setOnClickListener(v -> {
+                if (currentSelectedCity != null) {
+                    Intent intent = new Intent(ExploreActivity.this, CityDetailActivity.class);
+                    intent.putExtra("cityId", currentSelectedCity.getId());
+                    intent.putExtra("countryId", currentSelectedCity.getCountryId());
+                    startActivity(intent);
+                }
+            });
+        }
+
+        mapView.getMapAsync(this);
         if (btnCloseRoute != null) btnCloseRoute.setOnClickListener(v -> exitRouteMode());
     }
 
@@ -334,30 +352,22 @@ public class ExploreActivity extends AppCompatActivity implements SensorEventLis
 
         // Resetăm locația calculată pentru rută
         lastRouteCalculatedLocation = null;
-        if (layoutSummaryContainer != null) {
-            layoutSummaryContainer.setVisibility(View.GONE);
-        }
+
         // Ștergem definitiv textele din sumar
-        if (txtNextDestination != null) {
-            txtNextDestination.setText("");
-            txtNextDestination.setVisibility(View.GONE);
-        }
+        if (txtNextDestination != null) txtNextDestination.setText("");
+        if (txtTotalRouteSummary != null) txtTotalRouteSummary.setText("");
+        if (txtInstruction != null) txtInstruction.setText("");
 
-        if (txtTotalRouteSummary != null) {
-            txtTotalRouteSummary.setText("");
-            txtTotalRouteSummary.setVisibility(View.GONE);
-        }
-
-        if (txtInstruction != null) {
-            txtInstruction.setText("");
-            txtInstruction.setVisibility(View.GONE);
-        }
-
-        // Resetăm orașul curent
-        currentCityId = null;
-
-        // Curățăm pinii locurilor și reafișăm toate orașele
+// Curățăm pinii locurilor
         clearPlaceMarkers();
+
+// Ștergem și markerii vechi ai orașelor
+        for (Marker m : activeCityMarkers) {
+            mapLibreMap.removeMarker(m);
+        }
+        activeCityMarkers.clear();
+
+// Reafișăm toate orașele cu markeri noi
         displayAllLoadedCities();
 
         // Resetăm chip-ul „All Europe”
@@ -1160,6 +1170,7 @@ public class ExploreActivity extends AppCompatActivity implements SensorEventLis
                     imgPopupCity.setImageResource(R.drawable.rome);
                 }
             }
+
 
             cardMapPopup.setVisibility(View.VISIBLE);
         }
