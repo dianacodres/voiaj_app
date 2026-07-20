@@ -2,6 +2,7 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cityDetailRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -737,5 +738,41 @@
             app:cornerRadius="16dp" />
 
     </LinearLayout>
+
+    <!-- Containerul mare de loading rămâne la fel -->
+    <RelativeLayout
+        android:id="@+id/layoutLoadingScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <!-- 💡 ÎNLOCUIM LOTTIE CU PROGRESSBAR-UL NATIV (Adio rânduri roșii!) -->
+            <ProgressBar
+                android:id="@+id/progressBarLoading"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:indeterminateTint="@color/light_turq_1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Loading destination details..."
+                android:textColor="@color/navy_blue_1"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"/>
+        </LinearLayout>
+
+    </RelativeLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

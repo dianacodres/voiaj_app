@@ -245,7 +245,6 @@ public class JourneyActivity extends AppCompatActivity {
             public void onSuccess(List<Trip> savedTrips) {
                 List<Trip> planned = new ArrayList<>();
                 List<Trip> drafts = new ArrayList<>();
-
                 for (Trip trip : savedTrips) {
                     if (trip.getCityId() != null) {
                         String officialUrl = cityImageMap.get(trip.getCityId().toLowerCase().trim());
@@ -255,7 +254,11 @@ public class JourneyActivity extends AppCompatActivity {
                     }
 
                     if ("draft".equals(trip.getStatus())) {
-                        drafts.add(trip);
+                        // 💡 CONDIȚIA SALVATOARE: Dacă are startDate, înseamnă că este un itinerariu AI vizualizat pe hartă,
+                        // nu o schiță simplă creată manual, așa că NU o adăugăm în lista vizibilă de drafts!
+                        if (trip.getStartDate() == null) {
+                            drafts.add(trip);
+                        }
                     } else {
                         planned.add(trip);
                     }
@@ -305,14 +308,25 @@ public class JourneyActivity extends AppCompatActivity {
             public void onSuccess(List<Trip> savedTrips) {
                 List<Trip> planned = new ArrayList<>();
                 List<Trip> drafts = new ArrayList<>();
+
                 for (Trip trip : savedTrips) {
-                    if ("draft".equals(trip.getStatus())) { drafts.add(trip); } else { planned.add(trip); }
-                }
+                    if ("draft".equals(trip.getStatus())) {
+                        // 💡 Filtrare inteligentă:
+                        if (trip.getStartDate() == null) {
+                            drafts.add(trip);
+                        }
+                    } else {
+                        planned.add(trip);
+                    }
+                } // <--- Închide bucla for
+
+                // Setezi adaptoarele și vizibilitatea textelor exact cum aveai înainte
                 recyclerPlanned.setAdapter(new TripAdapter(planned, true, trip -> openTripRoute(trip, false)));
                 txtNoPlannedTrips.setVisibility(planned.isEmpty() ? View.VISIBLE : View.GONE);
                 recyclerDrafts.setAdapter(new TripDraftAdapter(drafts, trip -> openDraftForEditing(trip), trip -> showDraftOptionsDialog(trip)));
                 txtNoDrafts.setVisibility(drafts.isEmpty() ? View.VISIBLE : View.GONE);
             }
+
             @Override
             public void onError(String errorMessage) {
                 txtNoPlannedTrips.setVisibility(View.VISIBLE);
@@ -320,6 +334,7 @@ public class JourneyActivity extends AppCompatActivity {
             }
         });
 
+        // Rămâne neatinsă și încărcarea pentru completed trips mai jos...
         tripRepository.getCompletedTrips(uid, new TripRepository.TripListCallback() {
             @Override
             public void onSuccess(List<Trip> completedTrips) {
@@ -327,10 +342,11 @@ public class JourneyActivity extends AppCompatActivity {
                 txtNoCompletedTrips.setVisibility(completedTrips.isEmpty() ? View.VISIBLE : View.GONE);
             }
             @Override
-            public void onError(String errorMessage) { txtNoCompletedTrips.setVisibility(View.VISIBLE); }
+            public void onError(String errorMessage) {
+                txtNoCompletedTrips.setVisibility(View.VISIBLE);
+            }
         });
     }
-
     /**
      * Deschide ExploreActivity în modul "traseu pentru un oraș", cu datele trip-ului curent.
      */

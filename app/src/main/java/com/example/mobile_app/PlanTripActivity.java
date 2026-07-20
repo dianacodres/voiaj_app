@@ -62,6 +62,8 @@ public class PlanTripActivity extends AppCompatActivity {
     private final Set<String> selectedAttractionIds = new HashSet<>();
     private final Set<String> selectedRestaurantIds = new HashSet<>();
 
+    private boolean isCustomizeModeFromAI = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -240,6 +242,13 @@ public class PlanTripActivity extends AppCompatActivity {
 
         updateDaysDisplay();
 
+        // ── MODIFICARE 2: Verificăm dacă activitatea a fost pornită în modul CUSTOMIZE de la AI ──
+        String launchMode = getIntent().getStringExtra("LAUNCH_MODE");
+        if ("CUSTOMIZE".equals(launchMode)) {
+            isCustomizeModeFromAI = true;
+            switchToExactDates(); // Îl ducem direct la calendar, sărind peste tab-ul de Flexible
+        }
+
         MaterialButton btnPlanWithAI = findViewById(R.id.btnPlanWithAI);
         TextView txtSaveAsDraft = findViewById(R.id.txtSaveAsDraft);
 
@@ -278,10 +287,19 @@ public class PlanTripActivity extends AppCompatActivity {
             SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
             startDate = isoFormat.format(new Date(departureDate));
             endDate = isoFormat.format(new Date(returnDate));
-            daysCount = (int) ((returnDate - departureDate) / (1000 * 60 * 60 * 24));
+            // Calculăm corect numărul de zile complete
+            daysCount = (int) ((returnDate - departureDate) / (1000 * 60 * 60 * 24)) + 1;
         } else {
             Toast.makeText(this, "Select your departure and return dates.", Toast.LENGTH_SHORT).show();
             return;
+        }
+
+        // ── LOG DE CONTROL: Vedem în Logcat exact ce trimitem către Firebase ──
+        android.util.Log.d("AI_SHORTCUT_DEBUG", "Tritem la generator -> Tara: " + countryId + " | Oras: " + cityId + " | Zile: " + daysCount);
+
+        if (cityId == null || countryId == null) {
+            Toast.makeText(this, "Eroare: Orașul sau țara nu au fost încărcate corect!", Toast.LENGTH_LONG).show();
+            return; // Oprim execuția aici ca să nu închidem ecranul degeaba
         }
 
         Toast.makeText(this, "Generating your itinerary...", Toast.LENGTH_SHORT).show();
@@ -294,28 +312,49 @@ public class PlanTripActivity extends AppCompatActivity {
                 new ItineraryGenerator.ItineraryCallback() {
                     @Override
                     public void onSuccess(List<ItineraryItem> itinerariu) {
-                        // NU salvam inca - trimitem doar spre chat, ca preview. Se salveaza
-                        // efectiv doar cand userul apasa butonul "Save" de pe card.
-                        Intent intent = new Intent(PlanTripActivity.this, AIChatActivity.class);
-                        intent.putExtra("previewCityId", cityId);
-                        intent.putExtra("previewCityName", cityName);
-                        intent.putExtra("previewCountryId", countryId);
-                        intent.putExtra("previewStartDate", finalStartDate);
-                        intent.putExtra("previewEndDate", finalEndDate);
-                        intent.putExtra("previewDaysCount", finalDaysCount);
-                        if (editingTripId != null) intent.putExtra("previewEditingTripId", editingTripId);
-                        intent.putExtra("previewItinerary", new java.util.ArrayList<>(itinerariu));
-                        startActivity(intent);
-                        finish();
+                        boolean fromShortcut = getIntent().getBooleanExtra("FROM_SHORTCUT", false);
+
+                        if (fromShortcut) {
+                            // ── TRIMITEM REZULTATUL DIRECT ÎN CHAT ──
+                            Intent intent = new Intent(PlanTripActivity.this, AIChatActivity.class);
+                            intent.putExtra("initialPrompt", "I want a vacation in " + cityName);
+                            intent.putExtra("previewCityName", cityName);
+                            intent.putExtra("previewStartDate", finalStartDate);
+                            intent.putExtra("previewEndDate", finalEndDate);
+                            intent.putExtra("previewDaysCount", finalDaysCount);
+                            intent.putExtra("previewItinerary", new java.util.ArrayList<>(itinerariu));
+                            intent.putExtra("SHORTCUT_DIRECT_DISPLAY", true); // Flag-ul pentru bypass
+
+                            // Pornim chat-ul normal, ca ecran nou peste stivă
+                            startActivity(intent);
+
+                            // Închidem DOAR calendarul, lăsând chat-ul în față
+                            finish();
+                        } else {
+                            Intent intent = new Intent(PlanTripActivity.this, AIChatActivity.class);
+                            intent.putExtra("previewCityId", cityId);
+                            intent.putExtra("previewCityName", cityName);
+                            intent.putExtra("previewCountryId", countryId);
+                            intent.putExtra("previewStartDate", finalStartDate);
+                            intent.putExtra("previewEndDate", finalEndDate);
+                            intent.putExtra("previewDaysCount", finalDaysCount);
+                            if (editingTripId != null) intent.putExtra("previewEditingTripId", editingTripId);
+                            intent.putExtra("previewItinerary", new java.util.ArrayList<>(itinerariu));
+                            startActivity(intent);
+                            finish();
+                        }
                     }
 
                     @Override
                     public void onError(String errorMessage) {
-                        Toast.makeText(PlanTripActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                        // ── LOG CRITIC: Aici vedem de ce crapă Firebase ──
+                        android.util.Log.e("AI_SHORTCUT_DEBUG", "Eroare Firebase: " + errorMessage);
+
+                        // Afișăm o alertă lungă cu eroarea reală pe ecran
+                        runOnUiThread(() -> Toast.makeText(PlanTripActivity.this, "Firebase Error: " + errorMessage, Toast.LENGTH_LONG).show());
                     }
                 });
     }
-
     /**
      * Salveaza trip-ul curent in savedTrips, cu status "draft" - fara generare AI,
      * doar selectiile manuale (daca exista), toate pe ziua 1. "Plan with AI" (butonul

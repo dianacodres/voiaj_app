@@ -46,12 +46,15 @@ public class CityDetailActivity extends AppCompatActivity {
 
     private final String WEATHER_API_KEY = "8b797ca0d5266ca229d83febd665dbc7";
 
+    private View layoutLoadingScreen;
+    private int operatiuniInIncarcare = 3;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_city_detail);
-
+        layoutLoadingScreen = findViewById(R.id.layoutLoadingScreen);
         db = FirebaseFirestore.getInstance();
 
         currentCityId = getIntent().getStringExtra("cityId");
@@ -109,6 +112,30 @@ public class CityDetailActivity extends AppCompatActivity {
             intent.putExtra("cityId", currentCityId);
             startActivity(intent);
         });
+
+// ── MODIFICAREA NOUĂ: Pune acest bloc exact aici, înainte de finalul lui onCreate ──
+        if (txtGenerateItineraryTitle != null) {
+            View cardGenerateItinerary = (View) txtGenerateItineraryTitle.getParent();
+            if (cardGenerateItinerary != null) {
+                cardGenerateItinerary.setOnClickListener(v -> {
+                    if (txtCityName != null && txtCityName.getText() != null) {
+                        String cityName = txtCityName.getText().toString();
+
+                        // ── SĂRIM PESTE HUB: Mergem direct la calendar! ──
+                        Intent intent = new Intent(CityDetailActivity.this, PlanTripActivity.class);
+                        intent.putExtra("LAUNCH_MODE", "CUSTOMIZE");
+                        intent.putExtra("cityName", cityName);
+                        intent.putExtra("cityId", currentCityId);
+                        intent.putExtra("countryId", currentCountryId);
+                        intent.putExtra("FROM_SHORTCUT", true); // Îi spunem calendarului că vine din scurtătură
+
+                        startActivity(intent);
+                        finish();
+                    }
+                });
+            }
+        }
+
     }
 
     private void loadCityDetails() {
@@ -186,9 +213,11 @@ public class CityDetailActivity extends AppCompatActivity {
                             } else if (txtWeatherCondition != null) {
                                 txtWeatherCondition.setText("No location data");
                             }
+                            verificaStareIncarcare();
                         }
                     } else {
                         Toast.makeText(this, "Error loading city data", Toast.LENGTH_SHORT).show();
+                        verificaStareIncarcare();
                     }
                 });
     }
@@ -232,11 +261,14 @@ public class CityDetailActivity extends AppCompatActivity {
                         card2.setVisibility(View.GONE);
                     }
                 }
+
+                verificaStareIncarcare();
             }
 
             @Override
             public void onError(String errorMessage) {
                 if (txtNoAttractions != null) txtNoAttractions.setVisibility(View.VISIBLE);
+                verificaStareIncarcare();
             }
         });
     }
@@ -279,11 +311,15 @@ public class CityDetailActivity extends AppCompatActivity {
                         card2.setVisibility(View.GONE);
                     }
                 }
+
+                verificaStareIncarcare();
             }
 
             @Override
             public void onError(String errorMessage) {
                 if (txtNoRestaurants != null) txtNoRestaurants.setVisibility(View.VISIBLE);
+
+                verificaStareIncarcare();
             }
         });
     }
@@ -428,7 +464,27 @@ public class CityDetailActivity extends AppCompatActivity {
                 });
             } finally {
                 executor.shutdown();
+                handler.post(() -> verificaStareIncarcare());
             }
         });
+    }
+
+
+
+
+    private void verificaStareIncarcare() {
+        operatiuniInIncarcare--;
+        if (operatiuniInIncarcare <= 0) {
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                if (layoutLoadingScreen != null && layoutLoadingScreen.getVisibility() == View.VISIBLE) {
+                    // Ascundem masca cu efectul fluid de fade-out direct
+                    layoutLoadingScreen.animate()
+                            .alpha(0f)
+                            .setDuration(300)
+                            .withEndAction(() -> layoutLoadingScreen.setVisibility(View.GONE))
+                            .start();
+                }
+            });
+        }
     }
 }

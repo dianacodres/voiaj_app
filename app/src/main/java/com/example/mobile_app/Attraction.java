@@ -112,10 +112,11 @@ public class Attraction {
         this.bookingRequired = bookingRequired;
     }
 
+    @com.google.firebase.firestore.PropertyName("ticketUrl")
     public String getTicketUrl() {
         return ticketUrl;
     }
-
+    @com.google.firebase.firestore.PropertyName("ticketUrl")
     public void setTicketUrl(String ticketUrl) {
         this.ticketUrl = ticketUrl;
     }
@@ -164,4 +165,10 @@ public class Attraction {
     public void setIndoorOutdoor(String indoorOutdoor) {
         this.indoorOutdoor = indoorOutdoor;
     }
+
+
+
+
+
+
 }

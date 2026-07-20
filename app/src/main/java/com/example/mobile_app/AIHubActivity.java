@@ -19,6 +19,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -83,7 +84,69 @@ public class AIHubActivity extends AppCompatActivity {
 
         incarcaIstoricRecent();
         setupBottomNav();
+
+        // ── ÎNLOCUIEȘTE BLOCUL DE MODIFICARE OPTIMIZATĂ DE JOS CU ACESTA ──
+        String autoMessage = getIntent().getStringExtra("AUTOMATIC_AI_MESSAGE");
+        boolean isFromShortcut = getIntent().getBooleanExtra("FROM_CITY_DETAIL_SHORTCUT", false);
+
+        if (isFromShortcut && autoMessage != null && !autoMessage.trim().isEmpty()) {
+            String targetCity = autoMessage.replace("I want a vacation in ", "").trim();
+
+            // 1. Deschidem direct AIChatActivity (Ecranul de conversație, NU calendarul brut!)
+            Intent chatIntent = new Intent(AIHubActivity.this, AIChatActivity.class);
+
+            // 2. Îi pasăm mesajul ca și cum utilizatorul l-ar fi tastat acolo
+            chatIntent.putExtra("initialPrompt", autoMessage);
+
+            // 3. Trimitem un flag special către AIChatActivity ca să știe să lanseze INSTANT calendarul pe modul Customize
+            chatIntent.putExtra("AUTO_LAUNCH_CUSTOMIZE", true);
+            chatIntent.putExtra("cityName", targetCity);
+            chatIntent.putExtra("cityId", targetCity.toLowerCase(Locale.ROOT));
+
+            startActivity(chatIntent);
+        }
     }
+
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Reîncărcăm automat istoricul de fiecare dată când ecranul revine în prim-plan
+        incarcaIstoricRecent();
+    }
+
+
+
+
+    // ── ADĂUGĂ METODA EXACT AICI ──
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent); // Actualizăm intenția activității cu noile date primite
+
+        // Verificăm dacă utilizatorul tocmai s-a întors din configuratorul de date exacte
+        boolean planCompleted = intent.getBooleanExtra("PLANNING_COMPLETED", false);
+        if (planCompleted) {
+            // Extragem itinerariul generat de scriptul AI
+            java.util.ArrayList<ItineraryItem> itinerariu =
+                    (java.util.ArrayList<ItineraryItem>) intent.getSerializableExtra("previewItinerary");
+
+            // Pasăm totul instant către ecranul de chat unde se va afișa cardul premium final
+            Intent chatIntent = new Intent(this, AIChatActivity.class);
+            chatIntent.putExtra("initialPrompt", "I want a vacation in " + intent.getStringExtra("previewCityName"));
+            chatIntent.putExtra("previewCityName", intent.getStringExtra("previewCityName"));
+            chatIntent.putExtra("previewStartDate", intent.getStringExtra("previewStartDate"));
+            chatIntent.putExtra("previewEndDate", intent.getStringExtra("previewEndDate"));
+            chatIntent.putExtra("previewDaysCount", intent.getIntExtra("previewDaysCount", 4));
+            chatIntent.putExtra("previewItinerary", itinerariu);
+
+            startActivity(chatIntent);
+        }
+    }
+
+
+
 
     /** Incarca ultimele 2 itinerarii SALVATE ale userului, ca "Recent" - nu conversatii de vreme/buget. */
     private void incarcaIstoricRecent() {

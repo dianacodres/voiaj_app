@@ -11,7 +11,7 @@ import java.util.Date;
  * users/{uid}/completedTrips/{tripId}
  * users/{uid}/savedTrips/{tripId}
  */
-public class Trip {
+public class Trip implements java.io.Serializable{
 
     @DocumentId
     private String tripId;

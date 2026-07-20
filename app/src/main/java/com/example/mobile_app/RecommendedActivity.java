@@ -24,7 +24,9 @@ import com.google.firebase.auth.FirebaseUser;
 import java.util.List;
 
 /** Ecranul complet de recomandari ("See all"), sortat descrescator dupa % match. */
-public class RecommendedActivity extends BaseActivity {
+public class RecommendedActivity extends AppCompatActivity { // Schimbat din BaseActivity pentru a evita conflictele cu Lottie
+
+    private View layoutLoadingScreen; // Noua variabilă pentru masca nativă turcoaz
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,17 +34,18 @@ public class RecommendedActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_recommended);
 
+        // 1. Inițializăm elementul de loading din noul XML nativ
+        layoutLoadingScreen = findViewById(R.id.layoutLoadingScreen);
+
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(Color.TRANSPARENT);
         window.setNavigationBarColor(Color.TRANSPARENT);
 
-        // Forțăm pictogramele de sistem să fie albe (sau dark, în funcție de fundalul tău)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowInsetsController controller = window.getInsetsController();
             if (controller != null) {
-                // Setează 0 pentru iconițe albe, sau APPEARANCE_LIGHT_STATUS_BARS pentru negre
                 controller.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
             }
         } else {
@@ -51,31 +54,25 @@ public class RecommendedActivity extends BaseActivity {
             );
         }
 
-        // 2. Padding pentru a lăsa conținutul să urce sub bara de status, fără "bandă albă"
+        // 2. Gestionare corectă a Insets într-un singur loc pentru a preveni bug-ul de suprascriere
         View root = findViewById(R.id.recommendedRoot);
+        View header = findViewById(R.id.header);
         if (root != null) {
             ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                // Padding jos pentru navigație, sus lăsăm 0 ca să treacă sub status bar
+
+                // Aplicăm padding-ul de jos pe root pentru bara de navigație
                 v.setPadding(0, 0, 0, systemBars.bottom);
+
+                // Aplicăm padding-ul de sus pe header pentru a împinge conținutul sub ceas/Status Bar
+                if (header != null) {
+                    header.setPadding(header.getPaddingLeft(), systemBars.top, header.getPaddingRight(), header.getPaddingBottom());
+                }
+
                 return insets;
             });
         }
 
-        // 3. Padding pentru Header-ul tău (dacă ai unul cu ID-ul "header")
-        // ca să împingem textul/butoanele sub ceas
-        View header = findViewById(R.id.header);
-        if (header != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(header, (v, insets) -> {
-                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(v.getPaddingLeft(), systemBars.top, v.getPaddingRight(), v.getPaddingBottom());
-                return insets;
-            });
-        }
-
-        loadingOverlay = findViewById(R.id.loadingOverlay);
-        loadingAnimation = findViewById(R.id.loadingAnimation);
-        showLoading();
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         loadRecommendations();
@@ -83,7 +80,10 @@ public class RecommendedActivity extends BaseActivity {
 
     private void loadRecommendations() {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser == null) return;
+        if (firebaseUser == null) {
+            ascundeLoadingFluid();
+            return;
+        }
 
         AuthRepository authRepository = new AuthRepository();
         authRepository.getCurrentUserProfile(new AuthRepository.AuthCallback() {
@@ -93,24 +93,28 @@ public class RecommendedActivity extends BaseActivity {
                 cityRepository.getAllCities(new CityRepository.CityListCallback() {
                     @Override
                     public void onSuccess(List<City> cities) {
-                        hideLoading();
+                        // ── ASCUNDEM MASCA FLUID ACUM CÂND DATELE AU SOSIT ──
+                        ascundeLoadingFluid();
+
                         List<RecommendationEngine.CityMatch> ranked =
                                 RecommendationEngine.rankCities(user.getInterests(), cities);
 
                         RecyclerView recyclerView = findViewById(R.id.recyclerRecommended);
-                        recyclerView.setLayoutManager(new LinearLayoutManager(RecommendedActivity.this));
-                        recyclerView.setAdapter(new RecommendedCityAdapter(ranked, city -> {
-                            Intent intent = new Intent(RecommendedActivity.this, CityDetailActivity.class);
-                            intent.putExtra("cityId", city.getId());
-                            intent.putExtra("cityName", city.getName());
-                            intent.putExtra("countryId", city.getCountryId());
-                            startActivity(intent);
-                        }));
+                        if (recyclerView != null) {
+                            recyclerView.setLayoutManager(new LinearLayoutManager(RecommendedActivity.this));
+                            recyclerView.setAdapter(new RecommendedCityAdapter(ranked, city -> {
+                                Intent intent = new Intent(RecommendedActivity.this, CityDetailActivity.class);
+                                intent.putExtra("cityId", city.getId());
+                                intent.putExtra("cityName", city.getName());
+                                intent.putExtra("countryId", city.getCountryId());
+                                startActivity(intent);
+                            }));
+                        }
                     }
 
                     @Override
                     public void onError(String errorMessage) {
-                        hideLoading();
+                        ascundeLoadingFluid(); // Ascundem masca și în caz de eroare ca să nu se blocheze interfața
                         Toast.makeText(RecommendedActivity.this,
                                 "Couldn't load cities: " + errorMessage, Toast.LENGTH_LONG).show();
                     }
@@ -119,9 +123,21 @@ public class RecommendedActivity extends BaseActivity {
 
             @Override
             public void onError(String errorMessage) {
+                ascundeLoadingFluid(); // Ascundem masca și în caz de eroare la profil
                 Toast.makeText(RecommendedActivity.this,
                         "Couldn't load profile: " + errorMessage, Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    /** Metodă helper pentru ascunderea fluidă cu fade-out a ecranului nativ de încărcare */
+    private void ascundeLoadingFluid() {
+        if (layoutLoadingScreen != null && layoutLoadingScreen.getVisibility() == View.VISIBLE) {
+            layoutLoadingScreen.animate()
+                    .alpha(0f)
+                    .setDuration(300)
+                    .withEndAction(() -> layoutLoadingScreen.setVisibility(View.GONE))
+                    .start();
+        }
     }
 }
