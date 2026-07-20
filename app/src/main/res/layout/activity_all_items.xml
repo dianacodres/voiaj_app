@@ -57,6 +57,17 @@
             android:textSize="16sp"
             android:fontFamily="sans-serif-medium"
             android:visibility="gone" />
+
+        <!-- ── MUTAT AICI ÎN INTERIORUL FRAME-ULUI: Acum va pluti fix pe mijlocul ecranului ── -->
+        <ProgressBar
+            android:id="@+id/pbAllItems"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:indeterminate="true"
+            android:indeterminateTint="#007AFF" />
+
     </FrameLayout>
 
 </LinearLayout>

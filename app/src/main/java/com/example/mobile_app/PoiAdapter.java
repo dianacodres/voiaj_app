@@ -58,13 +58,17 @@ public class PoiAdapter extends RecyclerView.Adapter<PoiAdapter.VH> {
         holder.subtitle.setText(item.subtitle);
 
         // ── MODIFICAT: Încărcare dinamică prin Glide a imaginii POI (external URL sau resursă locală) ──
+        // ── ÎNLOCUIEȘTE BUCATA ASTA ÎN ONBINDVIEWHOLDER ──
         if (holder.img != null) {
             String rawUrl = item.imageUrl;
 
             if (rawUrl != null && (rawUrl.startsWith("http://") || rawUrl.startsWith("https://"))) {
-                // Pas A: Avem link HTTP din Firestore, îl randăm direct de pe web
+                // Pas A: Link HTTP din Firestore - adăugăm regulile de viteză maximă
                 com.bumptech.glide.Glide.with(holder.itemView.getContext())
                         .load(rawUrl)
+                        .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL) // Salvează imaginea local pentru acces instant
+                        .priority(com.bumptech.glide.Priority.HIGH) // Descarcă cu prioritate maximă
+                        .dontAnimate() // Elimină animația lentă de încărcare (sare direct pe ecran)
                         .placeholder(R.drawable.rome)
                         .error(R.drawable.rome)
                         .into(holder.img);
@@ -77,13 +81,15 @@ public class PoiAdapter extends RecyclerView.Adapter<PoiAdapter.VH> {
                             .getIdentifier(fallbackId, "drawable", holder.itemView.getContext().getPackageName());
                 }
 
-                // Pas C: Dacă id-ul local nu există fizic în proiect, aplicăm fallback pe R.drawable.rome
                 if (imageResId == 0) {
                     imageResId = R.drawable.rome;
                 }
 
+                // Optimizăm și randarea resurselor din folderul drawable
                 com.bumptech.glide.Glide.with(holder.itemView.getContext())
                         .load(imageResId)
+                        .priority(com.bumptech.glide.Priority.HIGH)
+                        .dontAnimate()
                         .into(holder.img);
             }
         }

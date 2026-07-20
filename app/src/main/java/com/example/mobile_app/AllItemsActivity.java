@@ -2,6 +2,7 @@ package com.example.mobile_app;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ProgressBar; // Import nou
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -15,6 +16,7 @@ import java.util.List;
 public class AllItemsActivity extends AppCompatActivity {
 
     private RecyclerView rvAllItems;
+    private ProgressBar pbAllItems; // Variabilă nouă pentru bara de încărcare
     private TextView txtTitleAll;
     private TextView txtNoItemsAll;
     private FirebaseFirestore db;
@@ -33,6 +35,7 @@ public class AllItemsActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         rvAllItems = findViewById(R.id.rvAllItems);
+        pbAllItems = findViewById(R.id.pbAllItems); // Inițializare ProgressBar
         txtTitleAll = findViewById(R.id.txtTitleAll);
         txtNoItemsAll = findViewById(R.id.txtNoItemsAll);
 
@@ -57,6 +60,14 @@ public class AllItemsActivity extends AppCompatActivity {
             } else {
                 txtTitleAll.setText("All Restaurants");
             }
+
+            // ── AFIȘĂM BARA DE ÎNCĂRCARE ALBĂSTRĂ PE MIJLOC ──
+            if (pbAllItems != null) {
+                pbAllItems.setVisibility(View.VISIBLE);
+            }
+            // Ascundem lista temporar ca să nu se vadă flicker grafic urât în spate
+            rvAllItems.setVisibility(View.GONE);
+
             loadDataFromFirebase();
         }
     }
@@ -67,6 +78,12 @@ public class AllItemsActivity extends AppCompatActivity {
                 .collection(categoryType)
                 .get()
                 .addOnCompleteListener(task -> {
+
+                    // ── FIX LOGIC: Îl ascundem direct AICI, ca să dispară GARANTAT și în caz de succes, și în caz de eroare ──
+                    if (pbAllItems != null) {
+                        pbAllItems.setVisibility(View.GONE);
+                    }
+
                     if (task.isSuccessful() && task.getResult() != null) {
                         poiList.clear();
 
@@ -107,8 +124,16 @@ public class AllItemsActivity extends AppCompatActivity {
                             }
                         }
 
-                        adapter.notifyItemRangeChanged(0, poiList.size());
+                        // Forțăm interfața grafică să deseneze listele proaspăt ca să apară imaginile instant
+                        if (rvAllItems != null) {
+                            rvAllItems.post(() -> {
+                                adapter.notifyDataSetChanged();
+                                rvAllItems.invalidate();
+                            });
+                        }
+
                     } else {
+                        // Dacă pică conexiunea, acum ProgressBar-ul dispare corect și arată textul de eroare
                         rvAllItems.setVisibility(View.GONE);
                         if (txtNoItemsAll != null) {
                             txtNoItemsAll.setVisibility(View.VISIBLE);

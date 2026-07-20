@@ -150,45 +150,6 @@
                     android:textColor="#999999"
                     android:textSize="13sp"
                     android:visibility="gone" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="24dp">
-                    <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_ai" app:tint="@color/navy_blue_1" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="AI plans" android:textColor="@color/navy_blue_1" android:textSize="14sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="start planning now" android:textColor="@color/text_muted" android:textSize="12sp" />
-                </LinearLayout>
-
-                <!-- Card AI plans - ramane static, e o feature separata, neconstruita inca -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp">
-                    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="14dp" android:background="@color/light_turq_1">
-                        <ImageView
-                            android:id="@+id/imgAiBadge"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            android:background="@drawable/bg_input_field"
-                            android:backgroundTint="@color/sky_blue_2"
-                            android:padding="10dp"
-                            android:src="@drawable/ic_route"
-                            app:tint="@color/navy_blue_1"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintBottom_toBottomOf="parent" />
-
-                        <TextView android:id="@+id/txtAiPlanTitle" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="14dp" android:text="Italy — 7-day plan" android:textColor="@color/navy_blue_1" android:textSize="15sp" android:textStyle="bold" app:layout_constraintStart_toEndOf="@id/imgAiBadge" app:layout_constraintTop_toTopOf="@id/imgAiBadge" app:layout_constraintEnd_toStartOf="@id/btnArrowForward" />
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Rome · Florence · Venice · ~€890" android:textColor="@color/cream" android:textSize="12sp" android:maxLines="1" android:ellipsize="end" app:layout_constraintStart_toStartOf="@id/txtAiPlanTitle" app:layout_constraintTop_toBottomOf="@id/txtAiPlanTitle" app:layout_constraintEnd_toStartOf="@id/btnArrowForward" />
-                        <ImageView android:id="@+id/btnArrowForward" android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_arrow_forward" app:tint="@color/cream" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                </androidx.cardview.widget.CardView>
             </LinearLayout>
 
             <LinearLayout

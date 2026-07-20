@@ -121,16 +121,16 @@ public class CityDetailActivity extends AppCompatActivity {
                     if (txtCityName != null && txtCityName.getText() != null) {
                         String cityName = txtCityName.getText().toString();
 
-                        // ── SĂRIM PESTE HUB: Mergem direct la calendar! ──
                         Intent intent = new Intent(CityDetailActivity.this, PlanTripActivity.class);
                         intent.putExtra("LAUNCH_MODE", "CUSTOMIZE");
                         intent.putExtra("cityName", cityName);
                         intent.putExtra("cityId", currentCityId);
                         intent.putExtra("countryId", currentCountryId);
-                        intent.putExtra("FROM_SHORTCUT", true); // Îi spunem calendarului că vine din scurtătură
+
+                        // ── ETICHETA 1: Îi spunem calendarului că venim din shortcut ──
+                        intent.putExtra("FROM_SHORTCUT", true);
 
                         startActivity(intent);
-                        finish();
                     }
                 });
             }

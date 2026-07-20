@@ -314,32 +314,29 @@ public class PlanTripActivity extends AppCompatActivity {
                     public void onSuccess(List<ItineraryItem> itinerariu) {
                         boolean fromShortcut = getIntent().getBooleanExtra("FROM_SHORTCUT", false);
 
-                        if (fromShortcut) {
-                            // ── TRIMITEM REZULTATUL DIRECT ÎN CHAT ──
-                            Intent intent = new Intent(PlanTripActivity.this, AIChatActivity.class);
-                            intent.putExtra("initialPrompt", "I want a vacation in " + cityName);
-                            intent.putExtra("previewCityName", cityName);
-                            intent.putExtra("previewStartDate", finalStartDate);
-                            intent.putExtra("previewEndDate", finalEndDate);
-                            intent.putExtra("previewDaysCount", finalDaysCount);
-                            intent.putExtra("previewItinerary", new java.util.ArrayList<>(itinerariu));
-                            intent.putExtra("SHORTCUT_DIRECT_DISPLAY", true); // Flag-ul pentru bypass
+                        Intent intent = new Intent(PlanTripActivity.this, AIChatActivity.class);
+                        intent.putExtra("previewCityId", cityId);
+                        intent.putExtra("previewCityName", cityName);
+                        intent.putExtra("previewCountryId", countryId);
+                        intent.putExtra("previewStartDate", finalStartDate);
+                        intent.putExtra("previewEndDate", finalEndDate);
+                        intent.putExtra("previewDaysCount", finalDaysCount);
+                        intent.putExtra("previewItinerary", new java.util.ArrayList<>(itinerariu));
+                        if (editingTripId != null) intent.putExtra("previewEditingTripId", editingTripId);
 
-                            // Pornim chat-ul normal, ca ecran nou peste stivă
+                        if (fromShortcut) {
+                            // ── ETICHETA 2: Îi spunem Chat-ului să nu mai afișeze butoanele de decizie ──
+                            intent.putExtra("SHORTCUT_DIRECT_DISPLAY", true);
+                            intent.putExtra("initialPrompt", "I want a vacation in " + cityName);
+
+                            // Curățăm stiva ca să nu se mai poată întoarce în calendar la apăsarea tastei Back
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
 
-                            // Închidem DOAR calendarul, lăsând chat-ul în față
+                            // Închidem CityDetailActivity (dacă a rămas deschis în spate) prin finalizarea calendarului
                             finish();
                         } else {
-                            Intent intent = new Intent(PlanTripActivity.this, AIChatActivity.class);
-                            intent.putExtra("previewCityId", cityId);
-                            intent.putExtra("previewCityName", cityName);
-                            intent.putExtra("previewCountryId", countryId);
-                            intent.putExtra("previewStartDate", finalStartDate);
-                            intent.putExtra("previewEndDate", finalEndDate);
-                            intent.putExtra("previewDaysCount", finalDaysCount);
-                            if (editingTripId != null) intent.putExtra("previewEditingTripId", editingTripId);
-                            intent.putExtra("previewItinerary", new java.util.ArrayList<>(itinerariu));
+                            // Fluxul tău normal de dinainte (când vii din AI Hub)
                             startActivity(intent);
                             finish();
                         }

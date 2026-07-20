@@ -200,24 +200,26 @@ public class AIChatActivity extends AppCompatActivity {
             }
         });
 
-        // ── VERIFICĂRI PARAMETRI INTENT (Optimizat pentru Scurtătura Directă) ──
+// ── ÎN AIChatActivity.java (la finalul metodei onCreate) ──
+
         boolean directDisplay = getIntent().getBooleanExtra("SHORTCUT_DIRECT_DISPLAY", false);
         String initialPrompt = getIntent().getStringExtra("initialPrompt");
         boolean askAnythingMode = getIntent().getBooleanExtra("askAnythingMode", false);
         String previewCityId = getIntent().getStringExtra("previewCityId");
         String viewSavedTripId = getIntent().getStringExtra("viewSavedTripId");
 
-        // ── BLOC MODIFICAT: Sărim peste întrebări dacă venim din noul flux ──
+// ── REGULA DE AUR: Dacă e shortcut direct, afișăm rezultatul și ignorăm restul! ──
         if (directDisplay) {
-            // Afișăm vizual mesajul în chat ca și cum utilizatorul l-ar fi tastat
             if (initialPrompt != null) {
-                addUserBubble(initialPrompt);
+                addUserBubble(initialPrompt); // Afișăm bula de text a utilizatorului: "I want a vacation in..."
             }
-            // Lansăm direct funcția ta care desenează itinerariul complet (folosind datele deja stocate în Intent)
+            // Metoda ta nativă care preia "previewItinerary" din intent și desenează planul pe zile
             aratatItinerariulPreview();
+
         } else if (viewSavedTripId != null) {
             aratatItinerariulSalvat(viewSavedTripId);
         } else if (previewCityId != null) {
+            // Cazul normal de preview din restul aplicației
             aratatItinerariulPreview();
         } else if (initialPrompt != null) {
             addUserBubble(initialPrompt);
@@ -225,6 +227,7 @@ public class AIChatActivity extends AppCompatActivity {
         } else if (askAnythingMode) {
             addAiBubble("Ask me anything about your destination — history, culture, local tips, or anything else!");
         } else {
+            // Aici aveai probabil codul care afișa meniul cu drafts și customize
             addWelcomeMessage();
         }
     }
