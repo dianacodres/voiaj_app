@@ -7,10 +7,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F8F9FA"
-    tools:context=".ExploreActivity"
-    tools:ignore="SpellCheckingInspection">
+    tools:context=".ExploreActivity">
 
-    <!-- ── HEADER NOU: oraș + selector zile + buton X (înlocuiește panelNavigation vechi de sus) ── -->
+    <!-- ── HEADER TRASEU ── -->
     <LinearLayout
         android:id="@+id/routeHeader"
         android:layout_width="match_parent"
@@ -70,7 +69,7 @@
         </HorizontalScrollView>
     </LinearLayout>
 
-    <!-- ── Panou instrucțiuni navigare, vizibil doar după Start, sub header ── -->
+    <!-- ── Panou instrucțiuni navigare ── -->
     <androidx.cardview.widget.CardView
         android:id="@+id/panelNavigation"
         android:layout_width="match_parent"
@@ -99,48 +98,46 @@
             app:drawableTint="#2196F3" />
     </androidx.cardview.widget.CardView>
 
+    <!-- ── CONTAINER HARTĂ MAPLIBRE ── -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/mapContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="#E1F5FE"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/routeHeader"
         app:layout_constraintBottom_toTopOf="@id/bottomLayoutInside"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <org.osmdroid.views.MapView
-            android:id="@+id/map"
+        <org.maplibre.android.maps.MapView
+            android:id="@+id/mapView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <!-- ── Card pop-up pin: nume, tip, poză, add/delete traseu, auto-close 3s ── -->
+        <!-- ── Card pop-up pin: micșorat, fără buton albastru ── -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardPinPopup"
-            android:layout_width="260dp"
+            android:layout_width="180dp"
             android:layout_height="wrap_content"
             android:visibility="gone"
             app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="14dp"
+            app:cardCornerRadius="12dp"
             app:cardElevation="8dp"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintVertical_bias="0.35">
+            app:layout_constraintStart_toStartOf="parent">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="10dp">
+                android:orientation="horizontal"
+                android:padding="8dp"
+                android:gravity="center_vertical">
 
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/imgPinFrame"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    app:cardCornerRadius="12dp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    app:cardCornerRadius="8dp">
+
                     <ImageView
                         android:id="@+id/imgPinPhoto"
                         android:layout_width="match_parent"
@@ -149,53 +146,37 @@
                         tools:src="@drawable/rome" />
                 </androidx.cardview.widget.CardView>
 
-                <TextView
-                    android:id="@+id/txtPinType"
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:textColor="#E67E22"
-                    android:textSize="10sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.05"
-                    tools:text="MUSEUM"
-                    app:layout_constraintStart_toEndOf="@id/imgPinFrame"
-                    app:layout_constraintTop_toTopOf="@id/imgPinFrame"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/txtPinName"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/navy_blue_1"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:maxLines="2"
-                    android:ellipsize="end"
-                    tools:text="Colosseum"
-                    app:layout_constraintStart_toStartOf="@id/txtPinType"
-                    app:layout_constraintTop_toBottomOf="@id/txtPinType"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    <TextView
+                        android:id="@+id/txtPinType"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#E67E22"
+                        android:textSize="9sp"
+                        android:textStyle="bold"
+                        tools:text="MUSEUM" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnPinRouteAction"
-                    android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:layout_marginTop="6dp"
-                    android:textAllCaps="false"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/white"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    app:backgroundTint="@color/blue"
-                    app:cornerRadius="8dp"
-                    tools:text="Add"
-                    app:layout_constraintStart_toStartOf="@id/txtPinName"
-                    app:layout_constraintTop_toBottomOf="@id/txtPinName" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    <TextView
+                        android:id="@+id/txtPinName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/navy_blue_1"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:maxLines="2"
+                        android:ellipsize="end"
+                        tools:text="Colosseum" />
+                </LinearLayout>
+            </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- ── CONTROALE ZOOM & LOCAȚIE ── -->
         <LinearLayout
             android:id="@+id/zoomControls"
             android:layout_width="wrap_content"
@@ -206,8 +187,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintVertical_bias="0.45"
-            tools:ignore="RtlHardcoded">
+            app:layout_constraintVertical_bias="0.45">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="42dp"
@@ -247,7 +227,6 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="42dp"
                 android:layout_height="42dp"
-                android:layout_marginBottom="16dp"
                 app:cardCornerRadius="21dp"
                 app:cardElevation="4dp">
                 <Button
@@ -260,23 +239,9 @@
                     android:background="@android:color/transparent"
                     android:padding="0dp" />
             </androidx.cardview.widget.CardView>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnStartTrip"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:text="@string/btn_start"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF"
-                app:backgroundTint="#26658C"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.SmallComponent"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:padding="0dp"
-                app:elevation="5dp"/>
         </LinearLayout>
 
+        <!-- Pop-Up Detalii Oraș Selectat -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardMapPopup"
             android:layout_width="match_parent"
@@ -370,15 +335,14 @@
         </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- ── Panou jos: chips categorii + transport + distanță/timp total + până la următoarea atracție ── -->
+    <!-- ── PANOU JOS: CHIPS CATEGORII + CHIPS REGIUNI EUROPA (ÎN LOC DE CAR/WALK) ── -->
     <LinearLayout
         android:id="@+id/bottomLayoutInside"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="#FFFFFF"
-        android:paddingTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/mapContainer"
+        android:paddingTop="8dp"
         app:layout_constraintBottom_toTopOf="@id/scrollCardsHolder"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -390,7 +354,7 @@
             android:orientation="horizontal"
             android:weightSum="6"
             android:paddingHorizontal="8dp"
-            android:layout_marginBottom="10dp">
+            android:layout_marginBottom="8dp">
             <TextView android:id="@+id/chipMuseum" android:layout_width="0dp" android:layout_height="32dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#819CB8" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_museums" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
             <TextView android:id="@+id/chipRestaurant" android:layout_width="0dp" android:layout_height="32dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#D3B6D3" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_restaurants" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
             <TextView android:id="@+id/chipNature" android:layout_width="0dp" android:layout_height="32dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#8FB880" android:gravity="center" android:paddingHorizontal="1dp" android:text="@string/filter_nature" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
@@ -399,42 +363,96 @@
             <TextView android:id="@+id/chipMonument" android:layout_width="0dp" android:layout_height="32dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/bg_chip_selected" android:backgroundTint="#F4BEAE" android:gravity="center" android:paddingHorizontal="1dp" android:text="Monuments" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" />
         </LinearLayout>
 
-        <LinearLayout
+        <!-- ── CHIPS REGIUNI EUROPA (Așezate în locul fostelor butoane Car/Walk) ── -->
+        <HorizontalScrollView
+            android:id="@+id/scrollRegionChips"
             android:layout_width="match_parent"
             android:layout_height="36dp"
-            android:orientation="horizontal"
             android:paddingHorizontal="8dp"
-            android:layout_marginBottom="8dp">
+            android:clipToPadding="false"
+            android:scrollbars="none"
+            android:overScrollMode="never"
+            android:layout_marginBottom="6dp">
 
-            <TextView
-                android:id="@+id/btnTransportCar"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_marginEnd="4dp"
-                android:background="@drawable/bg_chip_selected"
-                android:backgroundTint="@color/blue"
-                android:gravity="center"
-                android:text="🚗 Car"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"
-                android:textSize="12sp"
-                android:tag="car" />
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/btnTransportWalk"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:background="@drawable/bg_chip"
-                android:backgroundTint="#F5F5F5"
-                android:gravity="center"
-                android:text="🚶 Walk"
-                android:textColor="#011C40"
-                android:textSize="12sp"
-                android:tag="walk" />
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/chipAllEurope"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_chip_selected"
+                    android:backgroundTint="@color/blue"
+                    android:gravity="center"
+                    android:paddingHorizontal="14dp"
+                    android:text="All Europe"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/chipWesternEurope"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_chip"
+                    android:gravity="center"
+                    android:paddingHorizontal="14dp"
+                    android:text="Western Europe"
+                    android:textColor="#011C40"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/chipCentralEurope"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_chip"
+                    android:gravity="center"
+                    android:paddingHorizontal="14dp"
+                    android:text="Central Europe"
+                    android:textColor="#011C40"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/chipSouthernEurope"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_chip"
+                    android:gravity="center"
+                    android:paddingHorizontal="14dp"
+                    android:text="Southern Europe"
+                    android:textColor="#011C40"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/chipNorthernEurope"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_chip"
+                    android:gravity="center"
+                    android:paddingHorizontal="14dp"
+                    android:text="Northern Europe"
+                    android:textColor="#011C40"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/chipEasternEurope"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_chip"
+                    android:gravity="center"
+                    android:paddingHorizontal="14dp"
+                    android:text="Eastern Europe"
+                    android:textColor="#011C40"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </HorizontalScrollView>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -467,19 +485,18 @@
                 tools:text="Next: 1.2 km · 15 min"
                 tools:visibility="visible" />
         </LinearLayout>
-
     </LinearLayout>
 
+    <!-- ── SCROLL ORIZONTAL CARDURI ORAȘE ── -->
     <HorizontalScrollView
         android:id="@+id/scrollCardsHolder"
         android:layout_width="match_parent"
-        android:layout_height="110dp"
+        android:layout_height="120dp"
         android:layout_marginTop="2dp"
         android:layout_marginBottom="4dp"
         android:scrollbars="none"
         android:overScrollMode="never"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/bottomLayoutInside"
         app:layout_constraintBottom_toTopOf="@id/bottomNav"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -493,6 +510,7 @@
             android:gravity="center_vertical" />
     </HorizontalScrollView>
 
+    <!-- ── BARA DE NAVIGARE JOS ── -->
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
@@ -606,7 +624,6 @@
                 android:textColor="#AAAAAA"
                 android:textSize="10sp" />
         </LinearLayout>
-
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
